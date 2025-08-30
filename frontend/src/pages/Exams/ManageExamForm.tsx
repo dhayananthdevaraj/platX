@@ -46,23 +46,17 @@ const ManageExamForm: React.FC<Props> = ({ examToEdit, institutes, onClose }) =>
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const trimmedName = examName.trim();
-    const trimmedCode = examCode.trim();
-
-    if (!trimmedName || !trimmedCode) {
+    if (!examName.trim() || !examCode.trim()) {
       toast.error('Exam name and code are required');
       return;
     }
 
     const payload: ExamPayload = {
-      name: trimmedName,
-      examCode: trimmedCode,
+      name: examName.trim(),
+      examCode: examCode.trim(),
       createdBy: user?.id,
+      instituteId: instituteIds.length > 0 ? instituteIds : undefined,
     };
-
-    if (instituteIds.length > 0) {
-      payload.instituteId = instituteIds;
-    }
 
     try {
       setLoading(true);
@@ -91,40 +85,43 @@ const ManageExamForm: React.FC<Props> = ({ examToEdit, institutes, onClose }) =>
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-6 bg-white p-6 rounded-xl shadow-md border border-gray-200"
+      className="space-y-6 bg-white p-8 rounded-2xl shadow-lg border border-gray-200 max-w-xl mx-auto"
     >
-      <h2 className="text-xl font-bold text-gray-800 mb-2">
+      <h2 className="text-2xl font-bold text-center text-blue-600 mb-6">
         {examToEdit ? 'Edit Exam' : 'Create New Exam'}
       </h2>
 
-      <div className="space-y-1">
+      {/* Exam Name */}
+      <div className="space-y-2">
         <label className="block text-sm font-medium text-gray-700">Exam Name</label>
         <input
           type="text"
           placeholder="Enter exam name"
-          className="input input-bordered w-full placeholder-gray-400"
+          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
           value={examName}
           onChange={(e) => setExamName(e.target.value)}
         />
       </div>
 
-      <div className="space-y-1">
+      {/* Exam Code */}
+      <div className="space-y-2">
         <label className="block text-sm font-medium text-gray-700">Exam Code</label>
         <input
           type="text"
           placeholder="Enter unique exam code"
-          className="input input-bordered w-full placeholder-gray-400"
+          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
           value={examCode}
           onChange={(e) => setExamCode(e.target.value)}
         />
       </div>
 
-      <div className="relative space-y-1">
+      {/* Institutes Dropdown */}
+      <div className="space-y-2 relative">
         <label className="block text-sm font-medium text-gray-700">
           Institutes (Optional)
         </label>
         <div
-          className="input input-bordered w-full cursor-pointer hover:bg-gray-50 transition"
+          className="w-full px-4 py-2 border rounded-lg cursor-pointer hover:bg-gray-50 transition"
           onClick={() => setDropdownOpen(!dropdownOpen)}
         >
           {instituteIds.length > 0
@@ -133,17 +130,19 @@ const ManageExamForm: React.FC<Props> = ({ examToEdit, institutes, onClose }) =>
         </div>
 
         {dropdownOpen && (
-          <div className="absolute mt-1 w-full bg-white border rounded shadow z-10">
+          <div className="absolute mt-1 w-full bg-white border rounded-lg shadow-lg z-10">
+            {/* Search */}
             <input
               className="w-full px-3 py-2 border-b text-sm outline-none"
               placeholder="Search institute..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
+
             <div className="max-h-48 overflow-y-auto">
-              {/* None option */}
+              {/* None */}
               <div
-                className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-700 flex items-center gap-2"
+                className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm flex items-center gap-2"
                 onClick={() => {
                   setInstituteIds([]);
                   setDropdownOpen(false);
@@ -153,9 +152,9 @@ const ManageExamForm: React.FC<Props> = ({ examToEdit, institutes, onClose }) =>
                 None
               </div>
 
-              {/* Select All option */}
+              {/* Select All */}
               <div
-                className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-700 flex items-center gap-2"
+                className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm flex items-center gap-2"
                 onClick={() => {
                   if (instituteIds.length === institutes.length) {
                     setInstituteIds([]);
@@ -172,11 +171,11 @@ const ManageExamForm: React.FC<Props> = ({ examToEdit, institutes, onClose }) =>
                 Select All
               </div>
 
-              {/* Institute list */}
+              {/* Institutes */}
               {filteredInstitutes.map((inst) => (
                 <div
                   key={inst._id}
-                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm text-gray-700 flex items-center gap-2"
+                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm flex items-center gap-2"
                   onClick={() => {
                     if (instituteIds.includes(inst._id)) {
                       setInstituteIds((prev) => prev.filter((id) => id !== inst._id));
@@ -198,10 +197,11 @@ const ManageExamForm: React.FC<Props> = ({ examToEdit, institutes, onClose }) =>
         )}
       </div>
 
-      <div className="flex justify-end gap-2 pt-2">
+      {/* Submit Button Centered */}
+      <div className="flex justify-center pt-4">
         <button
           type="submit"
-          className="btn btn-primary px-6"
+          className="px-8 py-2 rounded-lg bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 transition disabled:opacity-50"
           disabled={loading}
         >
           {loading ? 'Saving...' : examToEdit ? 'Update Exam' : 'Create Exam'}
