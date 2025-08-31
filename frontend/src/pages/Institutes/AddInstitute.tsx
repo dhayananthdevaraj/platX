@@ -12,8 +12,6 @@ const AddInstitute = () => {
 
   return (
     <div>
-     
-            <BackButton />
 
       {/* <h1 className="text-2xl font-semibold mb-4">Add Institute</h1> */}
 

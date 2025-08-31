@@ -1,45 +1,45 @@
+
 import React from "react";
 import styled from "styled-components";
 
 interface FloatingInputProps {
-    type?: string;
-    name: string;
-    value: string;
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    label: string;
+  type?: string;
+  name: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  label: string;
 }
 
 const FloatingInput: React.FC<FloatingInputProps> = ({
-    type = "text",
-    name,
-    value,
-    onChange,
-    label,
+  type = "text",
+  name,
+  value,
+  onChange,
+  label,
 }) => {
-    return (
-        <StyledWrapper>
-            <div className="input-container">
-                <input
-                    type={type}
-                    id={name}
-                    name={name}
-                    value={value}
-                    onChange={onChange}
-                    required
-                />
-                <label htmlFor={name} className="label">
-                    {label}
-                </label>
-                <div className="underline" />
-            </div>
-        </StyledWrapper>
-    );
+  return (
+    <StyledWrapper>
+      <div className="input-container">
+        <input
+          type={type}
+          id={name}
+          name={name}
+          value={value}
+          onChange={onChange}
+          placeholder=" "  // 👈 important for :placeholder-shown trick
+        />
+        <label htmlFor={name} className="label">
+          {label}
+        </label>
+        <div className="underline" />
+      </div>
+    </StyledWrapper>
+  );
 };
 
 const StyledWrapper = styled.div`
   .input-container {
     position: relative;
-    margin: 20px 0;
     width: 100%;
   }
 
@@ -48,14 +48,14 @@ const StyledWrapper = styled.div`
     width: 100%;
     border: none;
     border-bottom: 2px solid #ccc;
-    padding: 8px 0;
+    padding: 10px 0;
     background-color: transparent;
     outline: none;
   }
 
   .input-container .label {
     position: absolute;
-    top: 8px;
+    top: 10px;
     left: 0;
     color: #aaa;
     font-size: 16px;
@@ -63,9 +63,10 @@ const StyledWrapper = styled.div`
     pointer-events: none;
   }
 
+  /* 👇 Fix floating issue: works when not empty OR focused */
   .input-container input:focus ~ .label,
-  .input-container input:valid ~ .label {
-    top: -14px;
+  .input-container input:not(:placeholder-shown) ~ .label {
+    top: -12px;
     font-size: 13px;
     color: #2563eb; /* Tailwind blue-600 */
   }
@@ -82,7 +83,7 @@ const StyledWrapper = styled.div`
   }
 
   .input-container input:focus ~ .underline,
-  .input-container input:valid ~ .underline {
+  .input-container input:not(:placeholder-shown) ~ .underline {
     transform: scaleX(1);
   }
 `;
