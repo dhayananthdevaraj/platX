@@ -127,9 +127,9 @@ const Exams = () => {
           />
         </>
       ) : (
-        <>
+        <> 
           {/* Header with Filters inside */}
-          <div className="bg-white p-4 rounded-md shadow flex flex-col gap-4">
+          <div className="bg-white p-4 rounded-t-xl border shadow-md flex flex-col gap-4">
             {/* Top Row: Title + Buttons */}
             <div className="flex justify-between items-center">
               <h1 className="text-3xl font-bold">Exams</h1>
@@ -185,7 +185,7 @@ const Exams = () => {
                       </div>
 
                       {/* Institute Filter */}
-                      <select
+                      {/* <select
                         className="input input-bordered w-40"
                         value={filterInstitute}
                         onChange={(e) => setFilterInstitute(e.target.value)}
@@ -196,7 +196,7 @@ const Exams = () => {
                             {i.name}
                           </option>
                         ))}
-                      </select>
+                      </select> */}
 
                       {/* Status Filter */}
                       <select
@@ -249,14 +249,14 @@ const Exams = () => {
           </div>
 
           {/* Table */}
-          <div className="overflow-x-auto mt-6 rounded-2xl shadow-lg border border-gray-200">
+          <div className="overflow-x-auto shadow-lg border border-gray-200 bg-white">
             <table className="w-full text-sm text-left">
               {/* Table Head */}
               <thead className="sticky top-0 bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-sm">
                 <tr>
                   <th className="px-6 py-4 font-semibold">Name</th>
                   <th className="px-6 py-4 font-semibold">Exam Code</th>
-                  <th className="px-6 py-4 font-semibold">Institute</th>
+                  {/* <th className="px-6 py-4 font-semibold">Institute</th> */}
                   <th className="px-6 py-4 font-semibold">Status</th>
                   <th className="px-6 py-4 font-semibold">Created</th>
                   <th className="px-6 py-4 font-semibold text-center">Actions</th>
@@ -274,13 +274,13 @@ const Exams = () => {
                     >
                       <td className="px-6 py-4 font-medium text-gray-800">{exam.name}</td>
                       <td className="px-6 py-4 text-gray-600">{exam.examCode}</td>
-                      <td className="px-6 py-4 text-gray-600">
+                      {/* <td className="px-6 py-4 text-gray-600">
                         {exam.instituteId.length > 0
                           ? exam.instituteId
                             .map((id) => institutes.find((i) => i._id === id)?.name || "Unknown")
                             .join(", ")
                           : "No Institute"}
-                      </td>
+                      </td> */}
                       <td className="px-6 py-4">
                         <span
                           className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${exam.isActive
