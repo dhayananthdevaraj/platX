@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
@@ -25,8 +26,8 @@ interface Institute {
   capacity: number;
   isActive: boolean;
   createdAt: string;
-  createdBy: string;
-  lastUpdatedBy: string;
+  createdBy: { _id: string; name: string; email: string };
+  lastUpdatedBy: { _id: string; name: string; email: string };
 }
 
 const Institutes = () => {
@@ -53,6 +54,7 @@ const Institutes = () => {
   const fetchInstitutes = async () => {
     try {
       const res = await axios.get("http://localhost:7071/api/institutes");
+      console.log("ins",res);
       setInstitutes(res.data.institutes || []);
     } catch {
       toast.error("Failed to fetch institutes");
@@ -121,10 +123,10 @@ const Institutes = () => {
       {/* Header */}
       <div className="bg-white p-4 rounded-t-xl border shadow-md flex flex-col gap-4">
         <div className="flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <h1 className="text-3xl font-bold">Institutes</h1>
-              <GraduationCap size={32} className="text-gray-800" />
-            </div>
+          <div className="flex items-center gap-2">
+            <h1 className="text-3xl font-bold">Institutes</h1>
+            <GraduationCap size={32} className="text-gray-800" />
+          </div>
 
           <div className="flex items-center gap-3">
             {/* Filters Toggle */}
@@ -154,101 +156,100 @@ const Institutes = () => {
 
         {/* Filters (Animated Collapse) */}
         <AnimatePresence>
-  {showFilters && (
-    <motion.div
-      initial={{ height: 0, opacity: 0 }}
-      animate={{ height: "auto", opacity: 1 }}
-      exit={{ height: 0, opacity: 0 }}
-      transition={{ duration: 0.3, ease: "easeInOut" }}
-    >
-      {/* ✅ All controls in one horizontal line */}
-      <div className="flex flex-wrap items-center gap-4 mt-2">
-  {/* Left-aligned controls */}
-  <div className="relative w-full md:w-60">
-    <Search className="absolute left-3 top-2.5 text-gray-400 h-4 w-4" />
-    <input
-      type="text"
-      placeholder="Search institutes..."
-      value={searchText}
-      onChange={(e) => {
-        setSearchText(e.target.value);
-        setCurrentPage(1);
-      }}
-      className="input input-bordered pl-9 w-full"
-    />
-  </div>
+          {showFilters && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+            >
+              {/* ✅ All controls in one horizontal line */}
+              <div className="flex flex-wrap items-center gap-4 mt-2">
+                {/* Left-aligned controls */}
+                <div className="relative w-full md:w-60">
+                  <Search className="absolute left-3 top-2.5 text-gray-400 h-4 w-4" />
+                  <input
+                    type="text"
+                    placeholder="Search institutes..."
+                    value={searchText}
+                    onChange={(e) => {
+                      setSearchText(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className="input input-bordered pl-9 w-full"
+                  />
+                </div>
 
-  <select
-    className="input input-bordered w-40"
-    value={filterStatus}
-    onChange={(e) => {
-      setFilterStatus(e.target.value as "all" | "active" | "inactive");
-      setCurrentPage(1);
-    }}
-  >
-    <option value="all">All Status</option>
-    <option value="active">Active</option>
-    <option value="inactive">Inactive</option>
-  </select>
+                <select
+                  className="input input-bordered w-40"
+                  value={filterStatus}
+                  onChange={(e) => {
+                    setFilterStatus(e.target.value as "all" | "active" | "inactive");
+                    setCurrentPage(1);
+                  }}
+                >
+                  <option value="all">All Status</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
 
-  <select
-    className="input input-bordered w-40"
-    value={rowsPerPage}
-    onChange={(e) => {
-      setRowsPerPage(Number(e.target.value));
-      setCurrentPage(1);
-    }}
-  >
-    {[25, 50, 75, 100].map((count) => (
-      <option key={count} value={count}>
-        {count} per page
-      </option>
-    ))}
-  </select>
+                <select
+                  className="input input-bordered w-40"
+                  value={rowsPerPage}
+                  onChange={(e) => {
+                    setRowsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                >
+                  {[25, 50, 75, 100].map((count) => (
+                    <option key={count} value={count}>
+                      {count} per page
+                    </option>
+                  ))}
+                </select>
 
-  {/* Right-aligned controls, pushed by ml-auto */}
-  <div className="flex gap-4 ml-auto">
-    <div className="relative">
-      <button
-        onClick={() => setShowColumnDropdown(!showColumnDropdown)}
-        className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition"
-      >
-        Select Columns ▼
-      </button>
-      {showColumnDropdown && (
-        <div className="absolute z-10 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg p-3">
-          {allColumns.map((col) => (
-            <label key={col.key} className="flex items-center gap-2 text-sm py-1">
-              <input
-                type="checkbox"
-                checked={visibleColumns.includes(col.key)}
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    setVisibleColumns([...visibleColumns, col.key]);
-                  } else {
-                    setVisibleColumns(visibleColumns.filter((c) => c !== col.key));
-                  }
-                }}
-              />
-              {col.label}
-            </label>
-          ))}
-        </div>
-      )}
-    </div>
+                {/* Right-aligned controls, pushed by ml-auto */}
+                <div className="flex gap-4 ml-auto">
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowColumnDropdown(!showColumnDropdown)}
+                      className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition"
+                    >
+                      Select Columns ▼
+                    </button>
+                    {showColumnDropdown && (
+                      <div className="absolute z-10 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg p-3">
+                        {allColumns.map((col) => (
+                          <label key={col.key} className="flex items-center gap-2 text-sm py-1">
+                            <input
+                              type="checkbox"
+                              checked={visibleColumns.includes(col.key)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setVisibleColumns([...visibleColumns, col.key]);
+                                } else {
+                                  setVisibleColumns(visibleColumns.filter((c) => c !== col.key));
+                                }
+                              }}
+                            />
+                            {col.label}
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
 
-    <button
-      className="btn btn-secondary"
-      onClick={resetFilters}
-    >
-      Clear Filters
-    </button>
-  </div>
-</div>
-    </motion.div>
-  )}
-          </AnimatePresence>
-
+                  <button
+                    className="btn btn-secondary"
+                    onClick={resetFilters}
+                  >
+                    Clear Filters
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Table */}
@@ -285,6 +286,8 @@ const Institutes = () => {
                           </div>
                         ) : col.key === "createdAt" ? (
                           new Date(inst.createdAt).toLocaleDateString()
+                        ) : col.key === "createdBy" || col.key === "lastUpdatedBy" ? (
+                          inst[col.key as "createdBy" | "lastUpdatedBy"]?.name || "-"
                         ) : (
                           (inst as any)[col.key] || "-"
                         )}
@@ -295,14 +298,13 @@ const Institutes = () => {
                     onClick={(e) => e.stopPropagation()}
                   >
                     {/* Edit */}
-                  <Link
+                    <Link
                       to={`/institutes/edit/${inst._id}`}
-                     className="p-2 rounded-full bg-yellow-200 text-gray-500 hover:bg-yellow-500 shadow-md transition"
-                     title="Edit"
-                      >
-                    <FiEdit size={18} />
-                      </Link>
-
+                      className="p-2 rounded-full bg-yellow-200 text-gray-500 hover:bg-yellow-500 shadow-md transition"
+                      title="Edit"
+                    >
+                      <FiEdit size={18} />
+                    </Link>
 
                     {/* Toggle */}
                     <button
@@ -316,6 +318,14 @@ const Institutes = () => {
                     >
                       <Power className="h-5 w-5" />
                     </button>
+                  <Link
+                    to={`/institutes/${inst._id}/admins`}
+                    className="p-2 rounded-full bg-indigo-200 text-gray-600 hover:bg-indigo-500 hover:text-white transition"
+                    title="Manage Center Admins"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    👤
+                  </Link>
                   </td>
                 </tr>
               ))
@@ -331,54 +341,53 @@ const Institutes = () => {
       </div>
 
       {/* Pagination */}
-     {totalPages > 1 && (
-  <div className="flex justify-between items-center px-4 py-3 
+      {totalPages > 1 && (
+        <div className="flex justify-between items-center px-4 py-3 
                   bg-white border border-gray-200 shadow-md rounded-b-xl mt-4">
-    <button
-      disabled={currentPage === 1}
-      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-      className={`px-3 py-1 rounded-md text-sm font-medium border shadow-sm
+          <button
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            className={`px-3 py-1 rounded-md text-sm font-medium border shadow-sm
         ${
           currentPage === 1
             ? "text-gray-400 bg-gray-100 cursor-not-allowed"
             : "text-blue-600 bg-gray-50 hover:bg-blue-100"
         }`}
-    >
-      Prev
-    </button>
+          >
+            Prev
+          </button>
 
-    <div className="flex gap-2">
-      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-        <button
-          key={page}
-          onClick={() => setCurrentPage(page)}
-          className={`px-3 py-1 rounded-md text-sm font-medium border shadow-sm transition
+          <div className="flex gap-2">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`px-3 py-1 rounded-md text-sm font-medium border shadow-sm transition
             ${
               currentPage === page
                 ? "bg-blue-600 text-white shadow"
                 : "bg-gray-50 text-gray-700 hover:bg-blue-100"
             }`}
-        >
-          {page}
-        </button>
-      ))}
-    </div>
+              >
+                {page}
+              </button>
+            ))}
+          </div>
 
-    <button
-      disabled={currentPage === totalPages}
-      onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-      className={`px-3 py-1 rounded-md text-sm font-medium border shadow-sm
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            className={`px-3 py-1 rounded-md text-sm font-medium border shadow-sm
         ${
           currentPage === totalPages
             ? "text-gray-400 bg-gray-100 cursor-not-allowed"
             : "text-blue-600 bg-gray-50 hover:bg-blue-100"
         }`}
-    >
-      Next
-    </button>
-  </div>
-)}
-
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 };

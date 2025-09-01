@@ -47,7 +47,9 @@ const createInstitute = async (data) => {
 
 // Get all institutes (active and inactive)
 const getAllInstitutes = async () => {
-  const institutes = await Institute.find();
+  const institutes = await Institute.find()
+   .populate('createdBy', 'name email') // populate name & email of creator
+    .populate('lastUpdatedBy', 'name email'); // populate name & email of last updater
   return institutes;
 };
 

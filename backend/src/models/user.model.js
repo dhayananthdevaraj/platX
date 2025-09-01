@@ -41,11 +41,12 @@ const userSchema = new mongoose.Schema({
     },
     required: [true, 'Role is required']
   },
-  mobile: {
-    type: String,
-    match: [/^\+91-\d{10}$/, 'Mobile must be in format +91-xxxxxxxxxx'],
-    required: [true, 'Mobile number is required']
-  },
+mobile: {
+  type: String,
+  match: [/^\+91-?\d{10}$/, 'Mobile must be in format +91-xxxxxxxxxx'],
+  required: [true, 'Mobile number is required']
+},
+
   instituteId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Institute',
