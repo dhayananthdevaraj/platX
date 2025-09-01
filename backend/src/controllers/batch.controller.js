@@ -114,7 +114,10 @@ const getBatchesByInstituteId = async (instituteId) => {
   if (!instituteId) {
     throw new Error('instituteId is required');
   }
-  return await Batch.find({ instituteId });
+    return await Batch.find({ instituteId })
+    .populate('instituteId', 'name code')       // Only fetch institute name & code
+    .populate('createdBy', 'name email')        // User details of creator
+    .populate('lastUpdatedBy', 'name email'); 
 };
 
 module.exports = {

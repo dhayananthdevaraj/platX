@@ -50,6 +50,8 @@ import CourseDetail from './pages/Course/CourseDetail';
 import CourseBuilder from './pages/Course/CourseBuilder';
 import ManageQuestionSetForm from './pages/QuestionSets/ManageQuestionSetForm';
 import AddQuestion from './pages/Questions/AddQuestion';
+import InstituteAdmins from './pages/InstituteAdmins/InstituteAdmins';
+import InstituteAdminForm from './pages/InstituteAdmins/InstituteAdminForm';
 
 function App() {
   return (
@@ -118,6 +120,12 @@ function App() {
                       <Route path="/institutes" element={<Institutes />} />
                       <Route path="/institutes/create" element={<AddInstitute />} />
                       <Route path="/institutes/edit/:id" element={<ManageInstituteForm />} />
+
+                    <Route path="/institutes/:instituteId/admins" element={<InstituteAdmins />} />
+                    <Route path="/institutes/:instituteId/admins/create" element={<InstituteAdminForm />} />
+                     <Route path="/institutes/:instituteId/admins/edit/:id" element={<InstituteAdminForm />} />
+
+
 
                       {/* Batches */}
                       <Route path="/institutes/:instituteId/batches" element={<Batches />} />
