@@ -5,19 +5,22 @@ import ManageQuestionForm from "./ManageQuestionForm";
 import UploadQuestionExcel from "./UploadQuestionExcel";
 
 const AddQuestion: React.FC = () => {
-    const { questionSetId } = useParams(); // 👈 get from URL params
+    const { questionSetId, id } = useParams<{ questionSetId: string; id?: string }>();
     const instituteId = localStorage.getItem("selectedInstituteId");
     const [mode, setMode] = useState<"form" | "excel">("form");
 
+    // If editing, skip header and toggle (just show form)
+    if (id) {
+        return <ManageQuestionForm />;
+    }
+
     return (
         <div className="min-h-screen bg-gray-50 p-6 space-y-6">
-            {/* Header */}
+            {/* Header - Only for Add Mode */}
             <div className="bg-white p-5 rounded-xl border shadow-md flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <BackButton />
-                    <h1 className="text-2xl font-bold text-gray-800">
-                        Add New Question
-                    </h1>
+                    <h1 className="text-2xl font-bold text-gray-800">Add New Question</h1>
                 </div>
 
                 {/* Toggle Buttons */}
@@ -49,9 +52,7 @@ const AddQuestion: React.FC = () => {
             ) : instituteId && questionSetId ? (
                 <UploadQuestionExcel instituteId={instituteId} questionSetId={questionSetId} />
             ) : (
-                <p className="text-red-600">
-                    Missing institute ID or question set ID.
-                </p>
+                <p className="text-red-600">Missing institute ID or question set ID.</p>
             )}
         </div>
     );

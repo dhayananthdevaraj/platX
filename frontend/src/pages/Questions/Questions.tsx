@@ -10,6 +10,7 @@ import { useAuth } from "../../contexts/AuthContext"; // adjust path if needed
 import { motion, AnimatePresence } from "framer-motion";
 import { FaPlus } from "react-icons/fa6";
 import BackButton from "../../components/BackButton";
+import { FiEdit } from "react-icons/fi";
  
 
 
@@ -438,7 +439,7 @@ const Questions: React.FC = () => {
                                             title="Edit"
                                             className="hover:text-yellow-500 transition"
                                         >
-                                            <Pencil className="w-5 h-5" />
+                                            <FiEdit className="w-5 h-5" />
                                         </button>
                                         <button
                                             onClick={() => handleDeleteOne(q._id)}
