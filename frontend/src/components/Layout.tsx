@@ -139,7 +139,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                       className={`h-5 w-5 transition
                         ${isActive ? "text-blue-700" : "text-white group-hover:text-gray-100"}`}
                     />
-                    <RailTooltip label={item.name} />
+                    <RailTooltip label={item.name}/>
                   </Link>
                   {idx < filteredNavigation.length - 1 && (
                     <div className="h-px w-6 bg-white/20 mx-auto" />

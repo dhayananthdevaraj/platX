@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import Select from "react-select";
+import FileUpload from "../../components/FileUpload"; // ✅ import your custom file uploader
 
 interface UploadQuestionSetExcelProps {
-    instituteId: string; // from localStorage or props
+    instituteId: string;
 }
 
 const UploadQuestionSetExcel: React.FC<UploadQuestionSetExcelProps> = ({ instituteId }) => {
@@ -31,8 +32,8 @@ const UploadQuestionSetExcel: React.FC<UploadQuestionSetExcelProps> = ({ institu
             .catch(() => toast.error("Failed to load chapters"));
     }, []);
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const selectedFile = e.target.files?.[0] || null;
+    // handle file selection from FileUpload
+    const handleFileSelect = (selectedFile: File | null) => {
         if (selectedFile && !selectedFile.name.endsWith(".xlsx")) {
             toast.error("Please upload a valid Excel (.xlsx) file");
             return;
@@ -58,7 +59,7 @@ const UploadQuestionSetExcel: React.FC<UploadQuestionSetExcelProps> = ({ institu
         formData.append("examId", chapter.examId?._id || "");
         formData.append("subjectId", chapter.subjectId?._id || "");
         formData.append("instituteIds", instituteId);
-        formData.append("createdBy", userId); // 👈 send logged in user
+        formData.append("createdBy", userId);
 
         try {
             setUploading(true);
@@ -70,7 +71,7 @@ const UploadQuestionSetExcel: React.FC<UploadQuestionSetExcelProps> = ({ institu
                 formData,
                 {
                     headers: {
-                        Authorization: `Bearer ${token}`,  // ✅ keep only this
+                        Authorization: `Bearer ${token}`,
                     },
                 }
             );
@@ -97,29 +98,36 @@ const UploadQuestionSetExcel: React.FC<UploadQuestionSetExcelProps> = ({ institu
 
     return (
         <div className="bg-white rounded shadow p-6">
-            <h2 className="text-lg font-semibold mb-4">Upload Question Sets via Excel</h2>
+            <h2 className="text-lg font-semibold mb-6 text-center">
+                Upload Question Sets via Excel
+            </h2>
 
-            <input
-                type="file"
-                accept=".xlsx"
-                onChange={handleFileChange}
-                className="block w-full text-sm text-gray-700 mb-4"
-            />
+            {/* ✅ Centered File Upload */}
+            <div className="flex justify-center mb-6">
+                <FileUpload
+                    label="Browse Excel File (.xlsx)"
+                    onFileSelect={handleFileSelect}
+                />
+            </div>
 
-            <label className="label">Chapter (auto includes Subject & Exam)</label>
-            <Select
-                options={chapterOptions}
-                value={selectedChapter}
-                onChange={handleChapterChange}
-                placeholder="Search and select chapter..."
-                isClearable
-                isSearchable
-            />
+            <div className="mt-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Chapter (auto includes Subject & Exam)
+                </label>
+                <Select
+                    options={chapterOptions}
+                    value={selectedChapter}
+                    onChange={handleChapterChange}
+                    placeholder="Search and select chapter..."
+                    isClearable
+                    isSearchable
+                />
+            </div>
 
             <button
                 onClick={handleUpload}
                 disabled={uploading || !file}
-                className="btn btn-primary mt-4"
+                className="btn btn-primary mt-6 w-full"
             >
                 {uploading ? "Uploading..." : "Upload"}
             </button>

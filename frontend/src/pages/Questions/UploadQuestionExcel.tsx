@@ -2,18 +2,22 @@
 import React, { useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
+import FileUpload from "../../components/FileUpload"; // ✅ import your reusable FileUpload
 
 interface UploadQuestionExcelProps {
     instituteId: string;
-    questionSetId: string;   // 👈 required
+    questionSetId: string; // 👈 required
 }
 
-const UploadQuestionExcel: React.FC<UploadQuestionExcelProps> = ({ instituteId, questionSetId }) => {
+const UploadQuestionExcel: React.FC<UploadQuestionExcelProps> = ({
+    instituteId,
+    questionSetId,
+}) => {
     const [file, setFile] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const selectedFile = e.target.files?.[0] || null;
+    // ✅ handler for FileUpload component
+    const handleFileSelect = (selectedFile: File | null) => {
         if (selectedFile && !selectedFile.name.endsWith(".xlsx")) {
             toast.error("Please upload a valid Excel (.xlsx) file");
             return;
@@ -33,13 +37,20 @@ const UploadQuestionExcel: React.FC<UploadQuestionExcelProps> = ({ instituteId, 
 
         try {
             setUploading(true);
-            const response = await axios.post("http://localhost:7071/api/importQuestions", formData, {
-                headers: { "Content-Type": "multipart/form-data" },
-            });
-            toast.success(response.data.message || "Questions uploaded successfully");
+            const response = await axios.post(
+                "http://localhost:7071/api/importQuestions",
+                formData,
+                {
+                    headers: { "Content-Type": "multipart/form-data" },
+                }
+            );
+            toast.success(
+                response.data.message || "Questions uploaded successfully"
+            );
             setFile(null);
         } catch (error: any) {
-            const message = error.response?.data?.message || "Failed to upload Excel";
+            const message =
+                error.response?.data?.message || "Failed to upload Excel";
             toast.error(message);
         } finally {
             setUploading(false);
@@ -48,17 +59,22 @@ const UploadQuestionExcel: React.FC<UploadQuestionExcelProps> = ({ instituteId, 
 
     return (
         <div className="bg-white rounded shadow p-6">
-            <h2 className="text-lg font-semibold mb-4">Upload Questions via Excel</h2>
-            <input
-                type="file"
-                accept=".xlsx"
-                onChange={handleFileChange}
-                className="block w-full text-sm text-gray-700 mb-4"
-            />
+            <h2 className="text-lg font-semibold mb-6 text-center">
+                Upload Questions via Excel
+            </h2>
+
+            {/* ✅ Centered FileUpload component */}
+            <div className="flex justify-center mb-6">
+                <FileUpload
+                    label="Browse Excel File (.xlsx)"
+                    onFileSelect={handleFileSelect}
+                />
+            </div>
+
             <button
                 onClick={handleUpload}
                 disabled={uploading || !file}
-                className="btn btn-primary"
+                className="btn btn-primary w-full"
             >
                 {uploading ? "Uploading..." : "Upload"}
             </button>

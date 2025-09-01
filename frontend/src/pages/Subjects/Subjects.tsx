@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { CheckCircle, XCircle, Plus, Edit3, Eye, Search, X } from 'lucide-react';
+import { CheckCircle, XCircle, Search, X, SlidersHorizontal } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import { Plus, Edit3, Eye } from 'lucide-react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import BackButton from '../../components/BackButton';
+import { AnimatePresence, motion } from "framer-motion";
 
 interface Subject {
   _id: string;
@@ -21,7 +23,6 @@ interface Exam {
   _id: string;
   name: string;
   examCode: string;
-  instituteId?: string[];
 }
 
 interface Institute {
@@ -38,11 +39,15 @@ const Subjects = () => {
   const [institutes, setInstitutes] = useState<Institute[]>([]);
   const [loading, setLoading] = useState(true);
   const [toggleSubject, setToggleSubject] = useState<Subject | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
 
-  // Filters
+
+  // Filters & Pagination
   const [searchText, setSearchText] = useState('');
   const [filterInstitute, setFilterInstitute] = useState('all');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(25);
 
   const fetchData = async () => {
     if (!examId) return;
@@ -52,8 +57,6 @@ const Subjects = () => {
         axios.get(`http://localhost:7071/api/subject/exam/${examId}`),
         axios.get(`http://localhost:7071/api/institutes`),
       ]);
-
-      console.log("examRes.data"+examRes.data);
       setExam(examRes.data);
       setSubjects(subRes.data || []);
       setInstitutes(instRes.data.institutes || []);
@@ -89,6 +92,13 @@ const Subjects = () => {
     return matchesSearch && matchesInstitute && matchesStatus;
   });
 
+  // Pagination
+  const totalPages = Math.ceil(filteredSubjects.length / rowsPerPage);
+  const paginatedSubjects = filteredSubjects.slice(
+    (currentPage - 1) * rowsPerPage,
+    currentPage * rowsPerPage
+  );
+
   return (
     <div className="p-6 space-y-6">
       <BackButton />
@@ -96,140 +106,233 @@ const Subjects = () => {
       {exam && (
         <div className="bg-gradient-to-r from-indigo-600 to-blue-500 p-6 rounded-xl shadow-md text-white">
           <h2 className="text-3xl font-bold">{exam.name}</h2>
-          <p className="text-sm mt-1 opacity-90">
-            Exam Code: <span className="font-mono">{exam.examCode}</span>
-          </p>
+          <p className="text-sm mt-1 opacity-90">Exam Code: {exam.examCode}</p>
         </div>
       )}
 
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold text-gray-800">Subjects</h1>
-        <button
-          onClick={() => navigate(`/exams/${examId}/subjects/add`)}
-          className="btn btn-primary flex items-center gap-2"
-        >
-          <Plus className="w-5 h-5" />
-          Add Subject
-        </button>
-      </div>
+      {/* Header */}
+      <div className="bg-white p-4 rounded-t-xl border shadow-md flex flex-col gap-4">
+        {/* Header with Toggle Button */}
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold">Subjects</h1>
 
-      {/* Filters */}
-      <div className="bg-white p-4 rounded-xl shadow flex flex-col md:flex-row gap-4 items-center justify-between">
-        <div className="flex gap-3 w-full md:w-auto flex-1">
-          <div className="relative w-full md:w-60">
-            <Search className="absolute left-3 top-2.5 text-gray-400 h-4 w-4" />
-            <input
-              type="text"
-              placeholder="Search subjects..."
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              className="input input-bordered pl-9 w-full"
-            />
-          </div>
-
-          <select
-            className="input input-bordered w-40"
-            value={filterInstitute}
-            onChange={(e) => setFilterInstitute(e.target.value)}
-          >
-            <option value="all">All Institutes</option>
-            {institutes.map((i) => (
-              <option key={i._id} value={i._id}>
-                {i.name}
-              </option>
-            ))}
-          </select>
-
-          <select
-            className="input input-bordered w-36"
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value as 'all' | 'active' | 'inactive')}
-          >
-            <option value="all">All Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
-        </div>
-
-        <button
-          className="btn btn-secondary flex items-center gap-2"
-          onClick={() => {
-            setSearchText('');
-            setFilterInstitute('all');
-            setFilterStatus('all');
-          }}
-        >
-          <X className="h-4 w-4" />
-          Clear Filters
-        </button>
-      </div>
-
-      {/* Subjects */}
-      {loading ? (
-        <p className="text-center text-gray-500">Loading subjects...</p>
-      ) : filteredSubjects.length === 0 ? (
-        <p className="text-center text-gray-500">No subjects found for this exam.</p>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredSubjects.map((subject) => (
-            <div
-              key={subject._id}
-              className="bg-white p-5 rounded-lg border shadow hover:shadow-lg transition"
+          <div className="flex gap-3">
+            {/* Filters toggle */}
+            <button
+              className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition flex items-center gap-2"
+              onClick={() => setShowFilters(!showFilters)}
             >
-              <div className="flex justify-between items-center">
-                <h2 className="text-lg font-medium text-gray-800">{subject.name}</h2>
-                <div className="flex gap-3 items-center">
-                  <button
-                    onClick={() => navigate(`/exams/${examId}/subjects/add?edit=${subject._id}`)}
-                    className="text-blue-600 hover:text-blue-800"
-                    title="Edit"
+              <motion.span
+                animate={{ rotate: showFilters ? 180 : 0 }}
+                transition={{ duration: 0.3 }}
+                className="inline-block"
+              >
+                ▼
+              </motion.span>
+              Filters
+            </button>
+
+            <button
+              className="inline-flex items-center justify-center w-11 h-11 bg-blue-600 text-white rounded-full shadow hover:bg-blue-700 transition-all"
+              onClick={() => navigate(`/exams/${examId}/subjects/add`)}
+            >
+              <Plus size={20} />
+            </button>
+          </div>
+        </div>
+
+        {/* Filters (Animated Collapse) */}
+        <AnimatePresence>
+          {showFilters && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+            >
+              <div className="flex flex-col md:flex-row gap-4 items-center justify-between mt-2">
+                <div className="flex gap-3 w-full md:w-auto flex-1">
+                  {/* Search */}
+                  <div className="relative w-full md:w-60">
+                    <Search className="absolute left-3 top-2.5 text-gray-400 h-4 w-4" />
+                    <input
+                      type="text"
+                      placeholder="Search subjects..."
+                      value={searchText}
+                      onChange={(e) => setSearchText(e.target.value)}
+                      className="input input-bordered pl-9 w-full"
+                    />
+                  </div>
+
+                  {/* Status Filter */}
+                  <select
+                    className="input input-bordered w-36"
+                    value={filterStatus}
+                    onChange={(e) =>
+                      setFilterStatus(e.target.value as "all" | "active" | "inactive")
+                    }
                   >
-                    <Edit3 className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => setToggleSubject(subject)}
-                    className={`rounded-full p-1 ${
-                      subject.isActive ? 'text-green-600' : 'text-gray-400'
-                    }`}
-                    title={subject.isActive ? 'Deactivate' : 'Activate'}
-                  >
-                    {subject.isActive ? <CheckCircle className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
-                  </button>
+                    <option value="all">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
                 </div>
-              </div>
 
-              <p className="text-xs text-gray-500 mt-1">Code: {subject.subjectCode}</p>
-
-              <div className="mt-3 text-[11px] text-gray-500 space-y-1 leading-tight">
-                <div>
-                  <span className="font-semibold text-gray-600">Created:</span>{' '}
-                  {new Date(subject.createdAt).toLocaleString()}
-                </div>
-                <div>
-                  <span className="font-semibold text-gray-600">Updated:</span>{' '}
-                  {new Date(subject.updatedAt).toLocaleString()}
-                </div>
-                <div>
-                  <span className="font-semibold text-gray-600">By:</span>{' '}
-                  <span className="truncate">{subject.createdBy}</span>
-                </div>
-              </div>
-
-              <div className="mt-3">
-                <Link
-                  to={`/subjects/${subject._id}/chapters`}
-                  className="inline-flex items-center text-sm text-blue-600 hover:underline"
+                {/* Rows per page dropdown */}
+                <select
+                  className="input input-bordered w-32"
+                  value={rowsPerPage}
+                  onChange={(e) => {
+                    setRowsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
                 >
-                  <Eye className="w-4 h-4 mr-1" />
-                  View Chapters
-                </Link>
+                  {[25, 50, 75, 100].map((count) => (
+                    <option key={count} value={count}>
+                      {count} per page
+                    </option>
+                  ))}
+                </select>
+
+                {/* Clear Filters */}
+                <button
+                  className="btn btn-secondary flex items-center gap-2"
+                  onClick={() => {
+                    setSearchText("");
+                    setFilterInstitute("all");
+                    setFilterStatus("all");
+                    setRowsPerPage(25);
+                    setCurrentPage(1);
+                  }}
+                >
+                  <X className="h-4 w-4" />
+                  Clear
+                </button>
               </div>
-            </div>
-          ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Table */}
+      <div className="overflow-x-auto shadow-lg border border-gray-200 bg-white">
+        <table className="w-full text-sm text-left">
+          <thead className="sticky top-0 bg-gradient-to-r from-indigo-600 to-blue-500 text-white shadow-sm">
+            <tr>
+              <th className="px-6 py-4 font-semibold">Name</th>
+              <th className="px-6 py-4 font-semibold">Code</th>
+              <th className="px-6 py-4 font-semibold">Created</th>
+              <th className="px-6 py-4 font-semibold">Updated</th>
+              <th className="px-6 py-4 font-semibold">Created By</th>
+              <th className="px-6 py-4 font-semibold text-center">Actions</th>
+              <th className="px-6 py-4 font-semibold">Status</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {loading ? (
+              <tr>
+                <td colSpan={7} className="text-center py-10 text-gray-500">
+                  Loading...
+                </td>
+              </tr>
+            ) : paginatedSubjects.length > 0 ? (
+              paginatedSubjects.map((subject) => (
+                <tr key={subject._id} className="hover:bg-blue-50 transition-all">
+                  <td className="px-6 py-4 font-medium text-gray-800">{subject.name}</td>
+                  <td className="px-6 py-4 text-gray-600">{subject.subjectCode}</td>
+                  <td className="px-6 py-4 text-sm text-gray-500">
+                    {new Date(subject.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-500">
+                    {new Date(subject.updatedAt).toLocaleDateString()}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-500 truncate max-w-[150px]">
+                    {subject.createdBy}
+                  </td>
+
+                  {/* Actions */}
+                  <td
+                    className="px-6 py-4 flex items-center justify-center gap-3"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <button
+                      onClick={() => navigate(`/exams/${examId}/subjects/add?edit=${subject._id}`)}
+                      className="p-2 rounded-full bg-yellow-100 text-yellow-600 hover:bg-yellow-200 transition"
+                    >
+                      <Edit3 size={18} />
+                    </button>
+                    <Link
+                      to={`/subjects/${subject._id}/chapters`}
+                      className="p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition"
+                    >
+                      <Eye size={18} />
+                    </Link>
+                  </td>
+
+                  {/* Status */}
+                  <td className="px-6 py-4">
+                    <button
+                      onClick={() => setToggleSubject(subject)}
+                      className={`p-2 rounded-full transition ${subject.isActive
+                        ? 'bg-green-100 text-green-600 hover:bg-green-200'
+                        : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                        }`}
+                    >
+                      {subject.isActive ? (
+                        <CheckCircle className="h-5 w-5" />
+                      ) : (
+                        <XCircle className="h-5 w-5" />
+                      )}
+                    </button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={7} className="text-center py-10 text-gray-500">
+                  No subjects found
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-between items-center mt-4 px-4">
+          <button
+            className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50"
+            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+            disabled={currentPage === 1}
+          >
+            Prev
+          </button>
+          <div className="flex gap-2">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`px-3 py-1 rounded ${currentPage === page
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+              >
+                {page}
+              </button>
+            ))}
+          </div>
+          <button
+            className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50"
+            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </button>
         </div>
       )}
 
-      {/* Toggle Confirmation */}
+      {/* Confirm Toggle Modal */}
       {toggleSubject && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50 px-4">
           <div className="bg-white p-6 rounded-lg shadow max-w-sm w-full">

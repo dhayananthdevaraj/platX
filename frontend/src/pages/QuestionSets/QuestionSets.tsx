@@ -1,8 +1,14 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { PlusCircle, Pencil, Trash2, Eye, X, Search } from "lucide-react";
+import { PlusCircle, Pencil, Trash2, Eye, X, Search, Power } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { FaPlus } from "react-icons/fa6";
+import { FiEdit } from "react-icons/fi";
+import { motion, AnimatePresence } from "framer-motion";
+import { BsThreeDotsVertical } from "react-icons/bs";
+import { RiFilePaper2Line } from "react-icons/ri";
+
 
 interface UserRef {
   _id: string;
@@ -35,34 +41,46 @@ const QuestionSets = () => {
   const [loading, setLoading] = useState(true);
   const [selectedSet, setSelectedSet] = useState<QuestionSet | null>(null);
 
-  // ✅ Selection
+  // Filters
+  const [searchText, setSearchText] = useState("");
+  const [filterStatus, setFilterStatus] = useState<"all" | "active" | "inactive">("all");
+  const [rowsPerPage, setRowsPerPage] = useState(25);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [showFilters, setShowFilters] = useState(false);
+
+  // Column selector dropdown
+  const [showColumnDropdown, setShowColumnDropdown] = useState(false);
+
+  // Columns toggle (defaults)
+  const [visibleColumns, setVisibleColumns] = useState<string[]>([
+    "name", "code", "examId", "subjectId", "createdBy"
+  ]);
+
+  // Selection
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(false);
 
-  // ✅ Search
-  const [searchTerm, setSearchTerm] = useState("");
-
-  // ✅ Delete confirmation
+  // Delete confirmation
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [confirmBulkDelete, setConfirmBulkDelete] = useState(false);
 
-  // ✅ Clone Modal State
+  // Clone Modal State
   const [showCloneModal, setShowCloneModal] = useState(false);
   const [cloneName, setCloneName] = useState("");
   const [cloneCode, setCloneCode] = useState("");
+
+  const [bulkAction, setBulkAction] = useState("");
+
 
   const navigate = useNavigate();
 
   const fetchQuestionSets = async () => {
     try {
       const res = await axios.get("http://localhost:7071/api/questionset/all");
-      // show only active sets
-      const activeSets = (res.data.questionSets || []).filter(
-        (s: QuestionSet) => s.isActive
-      );
-      setQuestionSets(activeSets);
+      setQuestionSets(res.data.questionSets || []);
     } catch (error) {
       console.error("Failed to fetch question sets", error);
+      toast.error("Failed to fetch question sets");
       setQuestionSets([]);
     } finally {
       setLoading(false);
@@ -73,7 +91,70 @@ const QuestionSets = () => {
     fetchQuestionSets();
   }, []);
 
-  // ✅ Open Clone Modal
+  const handleToggleActive = async (id: string, currentStatus: boolean) => {
+    try {
+      await axios.put(`http://localhost:7071/api/questionset/update/${id}`, {
+        isActive: !currentStatus,
+      });
+      toast.success(`Marked as ${!currentStatus ? "Active" : "Inactive"}`);
+      fetchQuestionSets();
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Failed to update status");
+    }
+  };
+
+  // Apply Search + Filters
+  const filtered = questionSets.filter((set) => {
+    const matchesSearch =
+      set.name.toLowerCase().includes(searchText.toLowerCase()) ||
+      set.code?.toLowerCase().includes(searchText.toLowerCase()) ||
+      set.examId?.name?.toLowerCase().includes(searchText.toLowerCase()) ||
+      set.subjectId?.name?.toLowerCase().includes(searchText.toLowerCase());
+
+    const matchesStatus =
+      filterStatus === "all" ||
+      (filterStatus === "active" && set.isActive) ||
+      (filterStatus === "inactive" && !set.isActive);
+
+    return matchesSearch && matchesStatus;
+  });
+
+  // Pagination
+  const totalPages = Math.ceil(filtered.length / rowsPerPage);
+  const paginated = filtered.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
+
+  const allColumns = [
+    { key: "name", label: "Name" },
+    { key: "code", label: "Code" },
+    { key: "examId", label: "Exam" },
+    { key: "subjectId", label: "Subject" },
+    { key: "chapterId", label: "Chapter" },
+    { key: "createdBy", label: "Created By" },
+    { key: "lastUpdatedBy", label: "Last Updated By" },
+    { key: "instituteId", label: "Institutes" },
+    { key: "createdAt", label: "Created At" },
+    { key: "updatedAt", label: "Updated At" },
+  ];
+
+  // Handle Select All
+  const toggleSelectAll = () => {
+    if (selectAll) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(paginated.map((s) => s._id));
+    }
+    setSelectAll(!selectAll);
+  };
+
+  const toggleSelectOne = (id: string) => {
+    if (selectedIds.includes(id)) {
+      setSelectedIds(selectedIds.filter((sid) => sid !== id));
+    } else {
+      setSelectedIds([...selectedIds, id]);
+    }
+  };
+
+  // Open Clone Modal
   const openCloneModal = () => {
     if (selectedIds.length === 0) {
       toast.error("Please select at least one question set to clone");
@@ -82,11 +163,10 @@ const QuestionSets = () => {
     setShowCloneModal(true);
   };
 
-  // ✅ Handle Clone
+  // Handle Clone
   const handleClone = async () => {
     const user = JSON.parse(localStorage.getItem("user") || "{}");
     const userId = user.id;
-
     try {
       const res = await axios.post("http://localhost:7071/api/questionset/clone", {
         questionSetIds: selectedIds,
@@ -94,7 +174,6 @@ const QuestionSets = () => {
         name: cloneName,
         code: cloneCode,
       });
-
       toast.success(`${res.data.clonedSets?.length || 0} Question Set(s) cloned successfully`);
       setSelectedIds([]);
       setSelectAll(false);
@@ -107,7 +186,7 @@ const QuestionSets = () => {
     }
   };
 
-  // ✅ Soft Delete One
+  // Soft Delete One
   const handleSoftDelete = async (id: string) => {
     try {
       await axios.put(`http://localhost:7071/api/questionset/update/${id}`, {
@@ -120,7 +199,7 @@ const QuestionSets = () => {
     }
   };
 
-  // ✅ Bulk Delete
+  // Bulk Delete
   const handleBulkDelete = async () => {
     try {
       await Promise.all(
@@ -139,143 +218,220 @@ const QuestionSets = () => {
     }
   };
 
-  // ✅ Handle Select All
-  const toggleSelectAll = () => {
-    if (selectAll) {
-      setSelectedIds([]);
-    } else {
-      setSelectedIds(questionSets.map((s) => s._id));
-    }
-    setSelectAll(!selectAll);
-  };
-
-  const toggleSelectOne = (id: string) => {
-    if (selectedIds.includes(id)) {
-      setSelectedIds(selectedIds.filter((sid) => sid !== id));
-    } else {
-      setSelectedIds([...selectedIds, id]);
-    }
-  };
-
-  // ✅ Apply Search
-  const filteredSets = questionSets.filter((set) => {
-    return (
-      set.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      set.code?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  });
-
-  // ✅ Bulk Actions
+  // Bulk Actions
   const handleBulkAction = async (action: string) => {
     if (selectedIds.length === 0) {
       toast.error("Please select at least one question set");
       return;
     }
 
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
-    const userId = user.id;
-
-    console.log(userId)
-
     switch (action) {
       case "clone":
         openCloneModal();
         break;
-
       case "delete":
         setConfirmBulkDelete(true);
         break;
-
-      // case "edit":
-      //   navigate(`/questionsets/edit/${selectedIds[0]}`);
-      //   break;
-
       case "share":
         toast.success("Share action triggered");
         break;
-
       default:
         break;
     }
 
-    // ✅ reset dropdown value
-    const selectElement =
-      document.querySelector<HTMLSelectElement>("select");
-    if (selectElement) {
-      selectElement.value = "";
-    }
+    // Reset dropdown value
+    setBulkAction("");
   };
 
+  const resetFilters = () => {
+    setSearchText("");
+    setFilterStatus("all");
+    setRowsPerPage(25);
+    setCurrentPage(1);
+    setVisibleColumns(["name", "code", "examId", "subjectId", "createdBy"]);
+    setSelectedIds([]);
+    setSelectAll(false);
+  };
+
+  if (loading) {
+    return <div className="text-center text-gray-500 py-10">Loading...</div>;
+  }
+
   return (
-    <div className="px-4 md:px-10 py-6">
+    <div className="space-y-6 fade-in p-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-3">
-        <h1 className="text-3xl font-bold text-gray-800 tracking-tight">
-          Question Sets
-        </h1>
-        <Link
-          to="/questionsets/add"
-          className="inline-flex items-center px-5 py-2.5 bg-blue-600 text-white font-semibold rounded-xl shadow hover:bg-blue-700 transition-all"
-        >
-          <PlusCircle className="w-5 h-5 mr-2" />
-          Add Question Set
-        </Link>
-      </div>
-
-      {/* Bulk Actions + Search */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-4">
-        <select
-          onChange={(e) => handleBulkAction(e.target.value)}
-          defaultValue=""
-          className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="" disabled>
-            Bulk Actions
-          </option>
-          <option value="clone">Clone</option>
-          <option value="delete">Delete</option>
-          {/* <option value="edit">Edit</option> */}
-          <option value="share">Share</option>
-        </select>
-
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search by name or code..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+      <div className="bg-white p-4 rounded-t-xl border shadow-md flex flex-col gap-4">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <h1 className="text-3xl font-bold">Question Sets</h1>
+            <RiFilePaper2Line size={32} className="text-gray-800" />
+          </div>
+          <div className="flex items-center gap-3">
+            {/* Filters Toggle */}
+            <button
+              className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition flex items-center gap-2"
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              <motion.span
+                animate={{ rotate: showFilters ? 180 : 0 }}
+                transition={{ duration: 0.3 }}
+                className="inline-block"
+              >
+                ▼
+              </motion.span>
+              Filters
+            </button>
+            {/* Add Question Set */}
+            <Link
+              to="/questionsets/add"
+              className="inline-flex items-center justify-center w-11 h-11 bg-blue-600 text-white rounded-full shadow hover:bg-blue-700 transition-all"
+            >
+              <FaPlus size={20} />
+            </Link>
+          </div>
         </div>
+
+        {/* Filters (Animated Collapse) */}
+        <AnimatePresence>
+          {showFilters && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+            >
+              <div className="flex flex-wrap items-center gap-4 mt-2">
+                {/* Search */}
+                <div className="relative w-full md:w-60">
+                  <Search className="absolute left-3 top-2.5 text-gray-400 h-4 w-4" />
+                  <input
+                    type="text"
+                    placeholder="Search question sets..."
+                    value={searchText}
+                    onChange={(e) => {
+                      setSearchText(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    className="input input-bordered pl-9 w-full"
+                  />
+                </div>
+
+                <select
+                  className="input input-bordered w-40"
+                  value={filterStatus}
+                  onChange={(e) => {
+                    setFilterStatus(e.target.value as "all" | "active" | "inactive");
+                    setCurrentPage(1);
+                  }}
+                >
+                  <option value="all">All Status</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+
+                <select
+                  className="input input-bordered w-40"
+                  value={rowsPerPage}
+                  onChange={(e) => {
+                    setRowsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                >
+                  {[25, 50, 75, 100].map((count) => (
+                    <option key={count} value={count}>
+                      {count} per page
+                    </option>
+                  ))}
+                </select>
+
+                {/* Bulk Actions */}
+                <select
+                  value={bulkAction}
+                  onChange={(e) => {
+                    setBulkAction(e.target.value);
+                    handleBulkAction(e.target.value);
+                  }}
+                  className="input input-bordered w-40"
+                >
+                  <option value="" disabled>
+                    Bulk Actions
+                  </option>
+                  <option value="clone">Clone</option>
+                  <option value="delete">Delete</option>
+                  <option value="share">Share</option>
+                </select>
+
+                {/* Right-aligned controls */}
+                <div className="flex gap-4 ml-auto">
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowColumnDropdown(!showColumnDropdown)}
+                      className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition"
+                    >
+                      Select Columns ▼
+                    </button>
+                    {showColumnDropdown && (
+                      <div className="absolute z-10 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg p-3">
+                        {allColumns.map((col) => (
+                          <label key={col.key} className="flex items-center gap-2 text-sm py-1">
+                            <input
+                              type="checkbox"
+                              checked={visibleColumns.includes(col.key)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setVisibleColumns([...visibleColumns, col.key]);
+                                } else {
+                                  setVisibleColumns(visibleColumns.filter((c) => c !== col.key));
+                                }
+                              }}
+                            />
+                            {col.label}
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    className="btn btn-secondary"
+                    onClick={resetFilters}
+                  >
+                    Clear Filters
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Table */}
-      {loading ? (
-        <p className="text-center text-gray-500">Loading...</p>
-      ) : (
-        <div className="overflow-x-auto rounded-2xl shadow-xl border border-gray-200">
-          <table className="w-full border-collapse bg-white">
-            <thead>
-              <tr className="bg-blue-600 text-left text-sm font-semibold text-white">
-                <th className="px-6 py-3">
-                  <input
-                    type="checkbox"
-                    checked={selectAll}
-                    onChange={toggleSelectAll}
-                  />
-                </th>
-                <th className="px-6 py-3">Name</th>
-                <th className="px-6 py-3">Code</th>
-                <th className="px-6 py-3">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredSets.map((set, idx) => (
+      <div className="overflow-x-auto shadow-lg border border-gray-200 bg-white">
+        <table className="w-full text-sm text-left">
+          <thead className="sticky top-0 bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-sm">
+            <tr>
+              <th className="px-6 py-4 font-semibold">
+                <input
+                  type="checkbox"
+                  checked={selectAll}
+                  onChange={toggleSelectAll}
+                />
+              </th>
+              {allColumns
+                .filter((col) => visibleColumns.includes(col.key))
+                .map((col) => (
+                  <th key={col.key} className="px-6 py-4 font-semibold">
+                    {col.label}
+                  </th>
+                ))}
+              <th className="px-6 py-4 font-semibold text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {paginated.length > 0 ? (
+              paginated.map((set) => (
                 <tr
                   key={set._id}
-                  className={`border-t transition cursor-pointer ${idx % 2 === 0 ? "bg-white" : "bg-gray-100"
-                    } hover:bg-blue-100`}
+                  className="group hover:bg-blue-50 transition-all cursor-pointer"
                   onClick={() => navigate(`/questions/${set._id}`)}
                 >
                   <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
@@ -285,51 +441,123 @@ const QuestionSets = () => {
                       onChange={() => toggleSelectOne(set._id)}
                     />
                   </td>
-                  <td className="px-6 py-4 font-medium text-gray-800">
-                    {set.name}
-                  </td>
-                  <td className="px-6 py-4">{set.code || "-"}</td>
+                  {allColumns
+                    .filter((col) => visibleColumns.includes(col.key))
+                    .map((col) => (
+                      <td key={col.key} className="px-6 py-4 text-gray-700">
+                        {col.key === "examId" ? (
+                          set.examId?.name || "-"
+                        ) : col.key === "subjectId" ? (
+                          set.subjectId?.name || "-"
+                        ) : col.key === "chapterId" ? (
+                          set.chapterId?.name || "-"
+                        ) : col.key === "createdBy" ? (
+                          set.createdBy?.name || "-"
+                        ) : col.key === "lastUpdatedBy" ? (
+                          set.lastUpdatedBy?.name || "-"
+                        ) : col.key === "instituteId" ? (
+                          set.instituteId?.length
+                            ? set.instituteId.map((i) => i.name).join(", ")
+                            : "-"
+                        ) : col.key === "createdAt" ? (
+                          new Date(set.createdAt).toLocaleDateString()
+                        ) : col.key === "updatedAt" ? (
+                          new Date(set.updatedAt).toLocaleDateString()
+                        ) : (
+                          (set as any)[col.key] || "-"
+                        )}
+                      </td>
+                    ))}
                   <td
-                    className="px-6 py-4 flex items-center gap-3"
+                    className="px-6 py-4 flex items-center justify-center gap-3"
                     onClick={(e) => e.stopPropagation()}
                   >
+                    {/* Edit */}
                     <Link
                       to={`/questionsets/edit/${set._id}`}
-                      className="text-gray-500 hover:text-yellow-500 transition"
+                      className="p-2 rounded-full bg-yellow-200 text-gray-500 hover:bg-yellow-500 shadow-md transition"
                       title="Edit"
                     >
-                      <Pencil className="w-5 h-5" />
+                      <FiEdit size={18} />
                     </Link>
+                    {/* Toggle Status */}
                     <button
-                      onClick={() => setConfirmDeleteId(set._id)}
-                      className="text-gray-500 hover:text-red-600 transition"
-                      title="Delete"
+                      onClick={() => handleToggleActive(set._id, set.isActive)}
+                      className={`p-2 rounded-full transition ${set.isActive
+                          ? "bg-green-100 text-green-600 hover:bg-green-200"
+                          : "bg-gray-100 text-gray-400 hover:bg-gray-200"
+                        }`}
+                      title={set.isActive ? "Deactivate" : "Activate"}
                     >
-                      <Trash2 className="w-5 h-5" />
+                      <Power className="h-5 w-5" />
                     </button>
+                    {/* View Details */}
                     <button
                       onClick={() => setSelectedSet(set)}
-                      className="text-gray-500 hover:text-blue-600 transition"
-                      title="Show More"
+                      className="p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 shadow-md transition"
+                      title="View Details"
                     >
-                      <Eye className="w-5 h-5" />
+                      <BsThreeDotsVertical className="h-5 w-5" />
                     </button>
                   </td>
                 </tr>
-              ))}
-              {filteredSets.length === 0 && (
-                <tr>
-                  <td colSpan={4} className="text-center py-8 text-gray-500">
-                    No question sets found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={visibleColumns.length + 2} className="text-center py-10 text-gray-500 text-base font-medium">
+                  No question sets found
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-between items-center px-4 py-3 
+                        bg-white border border-gray-200 shadow-md rounded-b-xl mt-4">
+          <button
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            className={`px-3 py-1 rounded-md text-sm font-medium border shadow-sm
+              ${currentPage === 1
+                ? "text-gray-400 bg-gray-100 cursor-not-allowed"
+                : "text-blue-600 bg-gray-50 hover:bg-blue-100"
+              }`}
+          >
+            Prev
+          </button>
+          <div className="flex gap-2">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`px-3 py-1 rounded-md text-sm font-medium border shadow-sm transition
+                  ${currentPage === page
+                    ? "bg-blue-600 text-white shadow"
+                    : "bg-gray-50 text-gray-700 hover:bg-blue-100"
+                  }`}
+              >
+                {page}
+              </button>
+            ))}
+          </div>
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            className={`px-3 py-1 rounded-md text-sm font-medium border shadow-sm
+              ${currentPage === totalPages
+                ? "text-gray-400 bg-gray-100 cursor-not-allowed"
+                : "text-blue-600 bg-gray-50 hover:bg-blue-100"
+              }`}
+          >
+            Next
+          </button>
         </div>
       )}
 
-      {/* Popup Modal */}
+      {/* Popup Modal for Details */}
       {selectedSet && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
           <div className="bg-white rounded-2xl shadow-2xl p-6 sm:w-[90%] md:w-[600px] relative animate-fadeIn">
@@ -339,14 +567,15 @@ const QuestionSets = () => {
             >
               <X className="w-5 h-5 text-gray-500" />
             </button>
-
             <h2 className="text-2xl font-bold mb-6 text-gray-800">
               {selectedSet.name}
             </h2>
-
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-700">
               <p>
                 <strong>Code:</strong> {selectedSet.code || "-"}
+              </p>
+              <p>
+                <strong>Status:</strong> {selectedSet.isActive ? "Active" : "Inactive"}
               </p>
               <p>
                 <strong>Exam:</strong> {selectedSet.examId?.name || "-"}
@@ -417,8 +646,7 @@ const QuestionSets = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 shadow-lg w-96 text-center">
             <h3 className="text-lg font-semibold mb-4">
-              Are you sure you want to delete {selectedIds.length} Question
-              Sets?
+              Are you sure you want to delete {selectedIds.length} Question Sets?
             </h3>
             <div className="flex justify-center gap-4">
               <button
@@ -429,7 +657,7 @@ const QuestionSets = () => {
               </button>
               <button
                 onClick={async () => {
-                  await handleBulkDelete(); // ✅ call delete function
+                  await handleBulkDelete();
                   setConfirmBulkDelete(false);
                 }}
                 className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700"
@@ -446,7 +674,6 @@ const QuestionSets = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl p-6 shadow-lg w-96">
             <h3 className="text-lg font-semibold mb-4">Clone Question Set</h3>
-
             <div className="flex flex-col gap-3">
               <input
                 type="text"
@@ -463,7 +690,6 @@ const QuestionSets = () => {
                 className="px-3 py-2 border rounded-lg focus:ring focus:ring-blue-300"
               />
             </div>
-
             <div className="flex justify-end gap-3 mt-5">
               <button
                 onClick={() => setShowCloneModal(false)}

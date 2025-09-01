@@ -3,6 +3,9 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
 import Select from "react-select";
+import BackButton from "../../components/BackButton";
+import FloatingInput from "../../components/FloatingInput";
+import { PlusCircle } from "lucide-react";
 
 interface FormData {
     name: string;
@@ -29,16 +32,16 @@ const initialFormData: FormData = {
 const ManageQuestionSetForm: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-
     const [formData, setFormData] = useState<FormData>(initialFormData);
     const [errors, setErrors] = useState<Partial<FormData>>({});
     const [submitting, setSubmitting] = useState(false);
     const [loading, setLoading] = useState(false);
-
     const [chapters, setChapters] = useState<any[]>([]);
+    const [institutes, setInstitutes] = useState<any[]>([]);
+
     const isEditMode = Boolean(id);
 
-    // fetch chapters
+    // Fetch chapters
     useEffect(() => {
         axios
             .get("http://localhost:7071/api/chapter/all")
@@ -51,7 +54,20 @@ const ManageQuestionSetForm: React.FC = () => {
             .catch(() => toast.error("Failed to load chapters"));
     }, []);
 
-    // fetch data if editing
+    // Fetch institutes
+    useEffect(() => {
+        axios
+            .get("http://localhost:7071/api/institutes")
+            .then((res) => {
+                const instituteList = Array.isArray(res.data)
+                    ? res.data
+                    : res.data.institutes || [];
+                setInstitutes(instituteList.filter((inst: any) => inst.isActive));
+            })
+            .catch(() => toast.error("Failed to load institutes"));
+    }, []);
+
+    // Fetch data if editing
     useEffect(() => {
         if (isEditMode) {
             setLoading(true);
@@ -76,24 +92,36 @@ const ManageQuestionSetForm: React.FC = () => {
 
     const validate = (): boolean => {
         const newErrors: Partial<FormData> = {};
-        if (!formData.name.trim()) newErrors.name = "Name is required";
-        if (!formData.code.trim()) newErrors.code = "Code is required";
-        if (!formData.chapterId) newErrors.chapterId = "Chapter is required";
-        if (!formData.examId) newErrors.examId = "Exam is required";
-        if (!formData.subjectId) newErrors.subjectId = "Subject is required";
+
+        if (!formData.name.trim() || formData.name.length < 3)
+            newErrors.name = "Name must be at least 3 characters";
+        if (!formData.code.trim())
+            newErrors.code = "Code is required";
+        if (!formData.chapterId)
+            newErrors.chapterId = "Chapter is required";
+        if (!formData.examId)
+            newErrors.examId = "Exam is required";
+        if (!formData.subjectId)
+            newErrors.subjectId = "Subject is required";
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleInputChange = (
+    const handleChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
     ) => {
         const { name, value, type } = e.target;
         const checked = (e.target as HTMLInputElement).checked;
+
         setFormData((prev) => ({
             ...prev,
             [name]: type === "checkbox" ? checked : value,
         }));
+
+        if (errors[name as keyof FormData]) {
+            setErrors((prev) => ({ ...prev, [name]: undefined }));
+        }
     };
 
     // When selecting chapter → auto fill examId & subjectId
@@ -106,6 +134,11 @@ const ManageQuestionSetForm: React.FC = () => {
                 examId: chapter?.examId?._id || "",
                 subjectId: chapter?.subjectId?._id || "",
             }));
+
+            // Clear chapter error if it exists
+            if (errors.chapterId) {
+                setErrors((prev) => ({ ...prev, chapterId: undefined }));
+            }
         } else {
             setFormData((prev) => ({
                 ...prev,
@@ -114,6 +147,15 @@ const ManageQuestionSetForm: React.FC = () => {
                 subjectId: "",
             }));
         }
+    };
+
+    // Handle institutes selection
+    const handleInstitutesChange = (selected: any) => {
+        const selectedIds = selected ? selected.map((opt: any) => opt.value) : [];
+        setFormData((prev) => ({
+            ...prev,
+            instituteId: selectedIds,
+        }));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -134,7 +176,6 @@ const ManageQuestionSetForm: React.FC = () => {
             }
 
             if (isEditMode) {
-                // Update
                 const payload = {
                     ...formData,
                     lastUpdatedBy: userId,
@@ -144,13 +185,12 @@ const ManageQuestionSetForm: React.FC = () => {
                     payload,
                     {
                         headers: {
-                            Authorization: `Bearer ${localStorage.getItem("token")}`, // or wherever you store it
+                            Authorization: `Bearer ${localStorage.getItem("token")}`,
                         },
                     }
                 );
                 toast.success("Question Set updated successfully");
             } else {
-                // Create
                 const payload = {
                     ...formData,
                     createdBy: userId,
@@ -170,115 +210,201 @@ const ManageQuestionSetForm: React.FC = () => {
         }
     };
 
-    if (loading)
-        return <p className="text-center text-gray-500">Loading...</p>;
+    if (loading) return <p className="text-center text-gray-500">Loading...</p>;
 
     const chapterOptions =
         Array.isArray(chapters) && chapters.length > 0
             ? chapters.map((ch) => ({
                 value: ch._id,
-                label: `${ch.name} - ${ch.subjectId?.name || "N/A"
-                    } - ${ch.examId?.name || "N/A"}`,
+                label: `${ch.name} - ${ch.subjectId?.name || "N/A"} - ${ch.examId?.name || "N/A"}`,
             }))
             : [];
 
+    const instituteOptions =
+        Array.isArray(institutes) && institutes.length > 0
+            ? institutes.map((inst) => ({
+                value: inst._id,
+                label: `${inst.name} (${inst.code})`,
+            }))
+            : [];
+
+    // Get selected chapter details for display
+    const selectedChapter = chapters.find((ch) => ch._id === formData.chapterId);
+
     return (
-        <form
-            onSubmit={handleSubmit}
-            className="space-y-6 bg-white p-6 rounded shadow"
-        >
-            <h2 className="text-xl font-semibold text-gray-700 mb-4">
-                {isEditMode ? "Edit Question Set" : "Add Question Set"}
-            </h2>
+        <div className="min-h-screen bg-gray-50 p-6 space-y-6">
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Name */}
-                <div>
-                    <label className="label">Name</label>
-                    <input
-                        type="text"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        className="input"
-                    />
-                    {errors.name && (
-                        <p className="text-sm text-red-600">{errors.name}</p>
-                    )}
-                </div>
+            {/* Form section */}
+            <div className="bg-white rounded-b-xl shadow-md p-8">
+                <form onSubmit={handleSubmit} className="space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {/* Name */}
+                        <div>
+                            <FloatingInput
+                                name="name"
+                                value={formData.name}
+                                onChange={handleChange}
+                                label="Question Set Name"
+                            />
+                            {errors.name && (
+                                <p className="text-sm text-red-600 mt-1">{errors.name}</p>
+                            )}
+                        </div>
 
-                {/* Code */}
-                <div>
-                    <label className="label">Code</label>
-                    <input
-                        type="text"
-                        name="code"
-                        value={formData.code}
-                        onChange={handleInputChange}
-                        className="input uppercase"
-                    />
-                    {errors.code && (
-                        <p className="text-sm text-red-600">{errors.code}</p>
-                    )}
-                </div>
+                        {/* Code */}
+                        <div>
+                            <FloatingInput
+                                name="code"
+                                value={formData.code}
+                                onChange={handleChange}
+                                label="Question Set Code"
+                            />
+                            {errors.code && (
+                                <p className="text-sm text-red-600 mt-1">{errors.code}</p>
+                            )}
+                        </div>
 
-                {/* Chapter Dropdown */}
-                <div className="col-span-2">
-                    <label className="label">Chapter</label>
-                    <Select
-                        options={chapterOptions}
-                        value={chapterOptions.find(
-                            (opt) => opt.value === formData.chapterId
+                        {/* Chapter Selection - Full Width */}
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Chapter *
+                            </label>
+                            <Select
+                                options={chapterOptions}
+                                value={chapterOptions.find(
+                                    (opt) => opt.value === formData.chapterId
+                                )}
+                                onChange={handleChapterChange}
+                                placeholder="Search and select chapter..."
+                                isClearable
+                                isSearchable
+                                className="react-select-container"
+                                classNamePrefix="react-select"
+                                styles={{
+                                    control: (base) => ({
+                                        ...base,
+                                        minHeight: '42px',
+                                        borderColor: '#D1D5DB',
+                                        '&:hover': {
+                                            borderColor: '#3B82F6'
+                                        },
+                                        '&:focus': {
+                                            borderColor: '#3B82F6',
+                                            boxShadow: '0 0 0 3px rgba(59, 130, 246, 0.1)'
+                                        }
+                                    })
+                                }}
+                            />
+                            {errors.chapterId && (
+                                <p className="text-sm text-red-600 mt-1">{errors.chapterId}</p>
+                            )}
+                        </div>
+
+                        {/* Auto-filled Exam (Read-only) */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Exam (Auto-filled)
+                            </label>
+                            <input
+                                type="text"
+                                value={selectedChapter?.examId?.name || ""}
+                                readOnly
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed focus:outline-none"
+                                placeholder="Will be auto-filled when chapter is selected"
+                            />
+                        </div>
+
+                        {/* Auto-filled Subject (Read-only) */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Subject (Auto-filled)
+                            </label>
+                            <input
+                                type="text"
+                                value={selectedChapter?.subjectId?.name || ""}
+                                readOnly
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed focus:outline-none"
+                                placeholder="Will be auto-filled when chapter is selected"
+                            />
+                        </div>
+
+                        {/* Institutes Selection - Full Width */}
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Institutes (Optional)
+                            </label>
+                            <Select
+                                isMulti
+                                options={instituteOptions}
+                                value={instituteOptions.filter((opt) =>
+                                    formData.instituteId.includes(opt.value)
+                                )}
+                                onChange={handleInstitutesChange}
+                                placeholder="Select institutes..."
+                                isClearable
+                                isSearchable
+                                className="react-select-container"
+                                classNamePrefix="react-select"
+                                styles={{
+                                    control: (base) => ({
+                                        ...base,
+                                        minHeight: '42px',
+                                        borderColor: '#D1D5DB',
+                                        '&:hover': {
+                                            borderColor: '#3B82F6'
+                                        },
+                                        '&:focus': {
+                                            borderColor: '#3B82F6',
+                                            boxShadow: '0 0 0 3px rgba(59, 130, 246, 0.1)'
+                                        }
+                                    })
+                                }}
+                            />
+                        </div>
+
+                        {/* Active Status */}
+                        <div className="flex items-center gap-3">
+                            <input
+                                type="checkbox"
+                                name="isActive"
+                                checked={formData.isActive}
+                                onChange={handleChange}
+                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            />
+                            <label className="text-sm font-medium text-gray-700">
+                                Active Status
+                            </label>
+                        </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex gap-4 pt-6">
+                        <button
+                            type="submit"
+                            className="px-6 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition shadow-md"
+                            disabled={submitting}
+                        >
+                            {submitting
+                                ? isEditMode
+                                    ? "Updating..."
+                                    : "Creating..."
+                                : isEditMode
+                                    ? "Update Question Set"
+                                    : "Create Question Set"}
+                        </button>
+                        {isEditMode && (
+                            <button
+                                type="button"
+                                onClick={() => navigate(-1)}
+                                className="px-6 py-2 rounded-lg bg-gray-200 text-gray-700 font-medium hover:bg-gray-300 transition shadow-md"
+                            >
+                                Cancel
+                            </button>
                         )}
-                        onChange={handleChapterChange}
-                        placeholder="Search and select chapter..."
-                        isClearable
-                        isSearchable
-                    />
-                    {errors.chapterId && (
-                        <p className="text-sm text-red-600">{errors.chapterId}</p>
-                    )}
-                </div>
-
-                {/* Active Status */}
-                <div className="flex items-center gap-2">
-                    <input
-                        type="checkbox"
-                        name="isActive"
-                        checked={formData.isActive}
-                        onChange={handleInputChange}
-                        className="h-4 w-4"
-                    />
-                    <label className="label">Active</label>
-                </div>
+                    </div>
+                </form>
             </div>
-
-            <div className="flex flex-col md:flex-row gap-4">
-                <button
-                    type="submit"
-                    className="btn btn-primary w-full md:w-auto"
-                    disabled={submitting}
-                >
-                    {submitting
-                        ? isEditMode
-                            ? "Updating..."
-                            : "Creating..."
-                        : isEditMode
-                            ? "Update Question Set"
-                            : "Create Question Set"}
-                </button>
-
-                {isEditMode && (
-                    <button
-                        type="button"
-                        onClick={() => navigate(-1)}
-                        className="btn btn-secondary w-full md:w-auto"
-                    >
-                        Cancel
-                    </button>
-                )}
-            </div>
-        </form>
+        </div>
     );
 };
 
