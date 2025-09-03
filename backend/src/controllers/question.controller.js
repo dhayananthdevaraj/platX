@@ -12,8 +12,6 @@ const createQuestion = async (data) => {
     correctAnswerIndex,
     explanation,
     questionSetId,
-    marks,
-    negativeMarks,
     createdBy,
     lastUpdatedBy,
     difficulty,
@@ -39,8 +37,6 @@ const createQuestion = async (data) => {
     correctAnswerIndex,
     explanation,
     questionSetId,
-    marks,
-    negativeMarks,
     createdBy,
     lastUpdatedBy,
     difficulty,  // ✅ new
@@ -123,8 +119,6 @@ const importQuestionsFromExcel = async (file, { questionSetId, createdBy }) => {
       option1, option2, option3, option4,
       correctAnswerIndex,
       explanation = '',
-      marks = 1,
-      negativeMarks = 0,
       difficulty = 'Medium',   // ✅ new
       tags = ''                // ✅ new (comma-separated in Excel)
     } = row;
@@ -140,8 +134,6 @@ const importQuestionsFromExcel = async (file, { questionSetId, createdBy }) => {
       options,
       correctAnswerIndex: Number(correctAnswerIndex),
       explanation,
-      marks: Number(marks),
-      negativeMarks: Number(negativeMarks),
       questionSetId,
       createdBy,
       lastUpdatedBy: createdBy,

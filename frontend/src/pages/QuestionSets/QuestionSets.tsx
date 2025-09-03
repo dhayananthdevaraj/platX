@@ -43,7 +43,7 @@ const QuestionSets = () => {
 
   // Filters
   const [searchText, setSearchText] = useState("");
-  const [filterStatus, setFilterStatus] = useState<"all" | "active" | "inactive">("all");
+  const [filterStatus, setFilterStatus] = useState<"all" | "active" | "inactive">("active");
   const [rowsPerPage, setRowsPerPage] = useState(25);
   const [currentPage, setCurrentPage] = useState(1);
   const [showFilters, setShowFilters] = useState(false);
@@ -260,33 +260,53 @@ const QuestionSets = () => {
   return (
     <div className="space-y-6 fade-in p-6">
       {/* Header */}
-      <div className="bg-white p-4 rounded-t-xl border shadow-md flex flex-col gap-4">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <h1 className="text-3xl font-bold">Question Sets</h1>
-            <RiFilePaper2Line size={32} className="text-gray-800" />
+      <div className="bg-white p-3 sm:p-4 rounded-t-xl border shadow-md flex flex-col gap-3 sm:gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <h1 className="text-2xl sm:text-3xl font-bold">Question Sets</h1>
+            <RiFilePaper2Line size={28} className="text-gray-800 sm:w-8 sm:h-8" />
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-end overflow-x-auto">
+            {/* Bulk Actions */}
+            <select
+              value={bulkAction}
+              onChange={(e) => {
+                setBulkAction(e.target.value);
+                handleBulkAction(e.target.value);
+              }}
+              className="px-2 sm:px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm min-w-0 flex-shrink-0"
+            >
+              <option value="" disabled>
+                <span className="hidden sm:inline">Bulk Actions</span>
+                <span className="sm:hidden">Bulk</span>
+              </option>
+              <option value="clone">Clone</option>
+              <option value="delete">Delete</option>
+              <option value="share">Share</option>
+            </select>
+
             {/* Filters Toggle */}
             <button
-              className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition flex items-center gap-2"
+              className="px-2 sm:px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition flex items-center gap-1 sm:gap-2 text-sm flex-shrink-0"
               onClick={() => setShowFilters(!showFilters)}
             >
               <motion.span
                 animate={{ rotate: showFilters ? 180 : 0 }}
                 transition={{ duration: 0.3 }}
-                className="inline-block"
+                className="inline-block text-xs"
               >
                 ▼
               </motion.span>
-              Filters
+              <span className="hidden sm:inline">Filters</span>
+              <span className="sm:hidden">Filter</span>
             </button>
             {/* Add Question Set */}
             <Link
               to="/questionsets/add"
-              className="inline-flex items-center justify-center w-11 h-11 bg-blue-600 text-white rounded-full shadow hover:bg-blue-700 transition-all"
+              className="inline-flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 bg-blue-600 text-white rounded-full shadow hover:bg-blue-700 transition-all flex-shrink-0"
             >
-              <FaPlus size={20} />
+              <FaPlus size={16} className="sm:hidden" />
+              <FaPlus size={20} className="hidden sm:block" />
             </Link>
           </div>
         </div>
@@ -300,8 +320,8 @@ const QuestionSets = () => {
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
             >
-              <div className="flex flex-wrap items-center gap-4 mt-2">
-                {/* Search */}
+              <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 md:flex md:flex-wrap md:items-center md:gap-4 gap-3">
+                {/* Search - Full width on all screens */}
                 <div className="relative w-full md:w-60">
                   <Search className="absolute left-3 top-2.5 text-gray-400 h-4 w-4" />
                   <input
@@ -316,8 +336,9 @@ const QuestionSets = () => {
                   />
                 </div>
 
+                {/* Status Filter */}
                 <select
-                  className="input input-bordered w-40"
+                  className="input input-bordered w-full sm:w-auto"
                   value={filterStatus}
                   onChange={(e) => {
                     setFilterStatus(e.target.value as "all" | "active" | "inactive");
@@ -329,8 +350,9 @@ const QuestionSets = () => {
                   <option value="inactive">Inactive</option>
                 </select>
 
+                {/* Rows per page */}
                 <select
-                  className="input input-bordered w-40"
+                  className="input input-bordered w-full sm:w-auto"
                   value={rowsPerPage}
                   onChange={(e) => {
                     setRowsPerPage(Number(e.target.value));
@@ -344,36 +366,23 @@ const QuestionSets = () => {
                   ))}
                 </select>
 
-                {/* Bulk Actions */}
-                <select
-                  value={bulkAction}
-                  onChange={(e) => {
-                    setBulkAction(e.target.value);
-                    handleBulkAction(e.target.value);
-                  }}
-                  className="input input-bordered w-40"
-                >
-                  <option value="" disabled>
-                    Bulk Actions
-                  </option>
-                  <option value="clone">Clone</option>
-                  <option value="delete">Delete</option>
-                  <option value="share">Share</option>
-                </select>
-
                 {/* Right-aligned controls */}
-                <div className="flex gap-4 ml-auto">
-                  <div className="relative">
+                <div className="flex gap-3 sm:gap-4 md:ml-auto w-full sm:w-auto justify-between sm:justify-start">
+                  {/* Column Selector */}
+                  <div className="relative w-full sm:w-auto">
                     <button
                       onClick={() => setShowColumnDropdown(!showColumnDropdown)}
-                      className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition"
+                      className="px-4 py-2 w-full sm:w-auto bg-gray-200 rounded-lg hover:bg-gray-300 transition text-sm"
                     >
                       Select Columns ▼
                     </button>
                     {showColumnDropdown && (
-                      <div className="absolute z-10 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg p-3">
+                      <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-10">
                         {allColumns.map((col) => (
-                          <label key={col.key} className="flex items-center gap-2 text-sm py-1">
+                          <label
+                            key={col.key}
+                            className="flex items-center gap-2 text-sm py-1 cursor-pointer"
+                          >
                             <input
                               type="checkbox"
                               checked={visibleColumns.includes(col.key)}
@@ -381,7 +390,9 @@ const QuestionSets = () => {
                                 if (e.target.checked) {
                                   setVisibleColumns([...visibleColumns, col.key]);
                                 } else {
-                                  setVisibleColumns(visibleColumns.filter((c) => c !== col.key));
+                                  setVisibleColumns(
+                                    visibleColumns.filter((c) => c !== col.key)
+                                  );
                                 }
                               }}
                             />
@@ -391,8 +402,10 @@ const QuestionSets = () => {
                       </div>
                     )}
                   </div>
+
+                  {/* Clear Filters */}
                   <button
-                    className="btn btn-secondary"
+                    className="px-4 py-2 bg-gray-100 rounded-lg hover:bg-gray-200 border text-sm w-full sm:w-auto"
                     onClick={resetFilters}
                   >
                     Clear Filters

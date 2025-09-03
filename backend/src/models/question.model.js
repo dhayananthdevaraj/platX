@@ -19,14 +19,6 @@ const questionSchema = new Schema({
   explanation: {
     type: String
   },
-  marks: {
-    type: Number,
-    default: 1
-  },
-  negativeMarks: {
-    type: Number,
-    default: 0
-  },
   questionSetId: {
     type: Schema.Types.ObjectId,
     ref: 'QuestionSet',

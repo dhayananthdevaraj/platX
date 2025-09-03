@@ -150,7 +150,7 @@ function App() {
 
                       <Route path="/questions/:questionSetId" element={<Questions />} />
                       <Route path="/questions/:questionSetId/add" element={<AddQuestion />} />
-                      <Route path="/questions/edit/:id" element={<AddQuestion />} />
+                      <Route path="/questions/:questionSetId/edit/:id" element={<AddQuestion />} />
 
                       {/* Groups */}
                       <Route path="/batches/:batchId/groups" element={<Groups />} />
