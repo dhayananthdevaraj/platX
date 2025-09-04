@@ -16,7 +16,7 @@ const SectionSidebar: React.FC<SectionSidebarProps> = ({
   removeSection,
 }) => {
   return (
-    <div className="w-1/4 border-r pr-4 space-y-2 sticky top-4 h-[calc(100vh-2rem)] overflow-y-auto">
+    <div className="w-full border-r pr-4 space-y-2 sticky top-4 h-[calc(100vh-2rem)] overflow-y-auto">
       <h4 className="font-semibold mb-2">Sections</h4>
 
       {sections.length === 0 && (

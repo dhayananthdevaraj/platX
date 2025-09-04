@@ -77,7 +77,7 @@ const PreviewTab: React.FC<PreviewTabProps> = ({
   return (
     <div className="space-y-6">
       {/* Test meta */}
-      <div className="bg-white border rounded-xl p-4">
+      <div className="bg-white min-w-full border rounded-xl p-4">
         <h2 className="text-lg font-semibold mb-2">Test Details</h2>
         <p>
           <strong>Name:</strong> {formData.name}
