@@ -1,7 +1,193 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import toast from 'react-hot-toast';
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+// import React, { useEffect, useState } from 'react';
+// import axios from 'axios';
+// import toast from 'react-hot-toast';
+// import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
+
+// interface BatchFormData {
+//   name: string;
+//   code: string;
+//   year: string;
+//   isActive: boolean;
+// }
+
+// const initialFormData: BatchFormData = {
+//   name: '',
+//   code: '',
+//   year: new Date().getFullYear().toString(),
+//   isActive: true
+// };
+
+// interface Props {
+//   instituteId?: string | null;
+// }
+
+// const ManageBatchForm: React.FC<Props> = ({ instituteId }) => {
+//   const { id } = useParams(); // for edit
+//   const [searchParams] = useSearchParams();
+//   const instIdFromQuery = searchParams.get('instituteId');
+
+//   const navigate = useNavigate();
+//   const [formData, setFormData] = useState<BatchFormData>(initialFormData);
+//   const [errors, setErrors] = useState<Partial<BatchFormData>>({});
+//   const [submitting, setSubmitting] = useState(false);
+//   const [loading, setLoading] = useState(false);
+
+//   const finalInstituteId = instituteId || instIdFromQuery;
+//   const isEditMode = Boolean(id);
+
+//   useEffect(() => {
+//     if (isEditMode) {
+//       setLoading(true);
+//       axios
+//         .get(`http://localhost:7071/api/batches/${id}`)
+//         .then((res) => setFormData(res.data))
+//         .catch(() => toast.error('Failed to fetch batch details'))
+//         .finally(() => setLoading(false));
+//     }
+//   }, [id]);
+
+//   const validate = (): boolean => {
+//     const newErrors: Partial<BatchFormData> = {};
+//     if (!formData.name.trim() || formData.name.length < 3)
+//       newErrors.name = 'Name must be at least 3 characters';
+//     if (!formData.code.trim()) newErrors.code = 'Code is required';
+//     if (!/^\d{4}$/.test(formData.year)) newErrors.year = 'Year must be in YYYY format';
+
+//     setErrors(newErrors);
+//     return Object.keys(newErrors).length === 0;
+//   };
+
+//   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+//     const { name, value } = e.target;
+//     setFormData((prev) => ({ ...prev, [name]: value }));
+//   };
+
+//   const handleSubmit = async (e: React.FormEvent) => {
+//     e.preventDefault();
+//     if (!validate()) return;
+//     if (!localStorage.getItem("selectedInstituteId")) {
+//       toast.error('Institute ID is missing.');
+//       return;
+//     }
+
+//     setSubmitting(true);
+//     try {
+//       if (isEditMode) {
+//         await axios.put(`http://localhost:7071/api/batches/${id}`, {
+//           ...formData,
+//           instituteId: localStorage.getItem("selectedInstituteId")
+//         });
+//         toast.success('Batch updated successfully');
+//       } else {
+//         console.log("formData", {
+//           ...formData,
+//           instituteId: finalInstituteId
+//         });
+        
+//         await axios.post('http://localhost:7071/api/batch/create', {
+//           ...formData,
+//           instituteId: localStorage.getItem("selectedInstituteId")
+//         });
+//         toast.success('Batch created successfully');
+//         setFormData(initialFormData);
+//       }
+//       navigate(-1);
+//     } catch (error: any) {
+//         console.log("error",error);
+        
+//       toast.error(error.response?.data?.message || 'Operation failed');
+//     } finally {
+//       setSubmitting(false);
+//     }
+//   };
+
+//   if (loading) return <p className="text-center text-gray-500">Loading...</p>;
+
+//   return (
+//     <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded shadow">
+//       <h2 className="text-xl font-semibold text-gray-700 mb-4">
+//         {isEditMode ? 'Edit Batch' : 'Add Batch'}
+//       </h2>
+
+//       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+//         {/* Name */}
+//         <div>
+//           <label className="label">Name</label>
+//           <input
+//             type="text"
+//             name="name"
+//             value={formData.name}
+//             onChange={handleChange}
+//             className="input"
+//           />
+//           {errors.name && <p className="text-sm text-red-600">{errors.name}</p>}
+//         </div>
+
+//         {/* Code */}
+//         <div>
+//           <label className="label">Code</label>
+//           <input
+//             type="text"
+//             name="code"
+//             value={formData.code}
+//             onChange={handleChange}
+//             className="input uppercase"
+//           />
+//           {errors.code && <p className="text-sm text-red-600">{errors.code}</p>}
+//         </div>
+
+//         {/* Year */}
+//         <div>
+//           <label className="label">Year</label>
+//           <input
+//             type="text"
+//             name="year"
+//             value={formData.year}
+//             onChange={handleChange}
+//             placeholder={new Date().getFullYear().toString()}
+//             className="input"
+//           />
+//           {errors.year && <p className="text-sm text-red-600">{errors.year}</p>}
+//         </div>
+//       </div>
+
+//       <div className="flex flex-col md:flex-row gap-4">
+//         <button
+//           type="submit"
+//           className="btn btn-primary w-full md:w-auto"
+//           disabled={submitting}
+//         >
+//           {submitting
+//             ? isEditMode
+//               ? 'Updating...'
+//               : 'Creating...'
+//             : isEditMode
+//             ? 'Update Batch'
+//             : 'Create Batch'}
+//         </button>
+
+//         {isEditMode && (
+//           <button
+//             type="button"
+//             onClick={() => navigate(-1)}
+//             className="btn btn-secondary w-full md:w-auto"
+//           >
+//             Cancel
+//           </button>
+//         )}
+//       </div>
+//     </form>
+//   );
+// };
+
+// export default ManageBatchForm;
+
+
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import FloatingInput from "../../components/FloatingInput";
 
 interface BatchFormData {
   name: string;
@@ -11,10 +197,10 @@ interface BatchFormData {
 }
 
 const initialFormData: BatchFormData = {
-  name: '',
-  code: '',
+  name: "",
+  code: "",
   year: new Date().getFullYear().toString(),
-  isActive: true
+  isActive: true,
 };
 
 interface Props {
@@ -24,7 +210,7 @@ interface Props {
 const ManageBatchForm: React.FC<Props> = ({ instituteId }) => {
   const { id } = useParams(); // for edit
   const [searchParams] = useSearchParams();
-  const instIdFromQuery = searchParams.get('instituteId');
+  const instIdFromQuery = searchParams.get("instituteId");
 
   const navigate = useNavigate();
   const [formData, setFormData] = useState<BatchFormData>(initialFormData);
@@ -41,7 +227,7 @@ const ManageBatchForm: React.FC<Props> = ({ instituteId }) => {
       axios
         .get(`http://localhost:7071/api/batches/${id}`)
         .then((res) => setFormData(res.data))
-        .catch(() => toast.error('Failed to fetch batch details'))
+        .catch(() => toast.error("Failed to fetch batch details"))
         .finally(() => setLoading(false));
     }
   }, [id]);
@@ -49,24 +235,37 @@ const ManageBatchForm: React.FC<Props> = ({ instituteId }) => {
   const validate = (): boolean => {
     const newErrors: Partial<BatchFormData> = {};
     if (!formData.name.trim() || formData.name.length < 3)
-      newErrors.name = 'Name must be at least 3 characters';
-    if (!formData.code.trim()) newErrors.code = 'Code is required';
-    if (!/^\d{4}$/.test(formData.year)) newErrors.year = 'Year must be in YYYY format';
+      newErrors.name = "Name must be at least 3 characters";
+    if (!formData.code.trim()) newErrors.code = "Code is required";
+    if (!/^\d{4}$/.test(formData.year))
+      newErrors.year = "Year must be in YYYY format";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value, type } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]:
+        name === "isActive"
+          ? (e.target as HTMLInputElement).checked
+          : value,
+    }));
+
+    if ((errors as any)[name]) {
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
-    if (!localStorage.getItem("selectedInstituteId")) {
-      toast.error('Institute ID is missing.');
+    if (!localStorage.getItem("selectedInstituteId") && !finalInstituteId) {
+      toast.error("Institute ID is missing.");
       return;
     }
 
@@ -75,27 +274,21 @@ const ManageBatchForm: React.FC<Props> = ({ instituteId }) => {
       if (isEditMode) {
         await axios.put(`http://localhost:7071/api/batches/${id}`, {
           ...formData,
-          instituteId: localStorage.getItem("selectedInstituteId")
+          instituteId: localStorage.getItem("selectedInstituteId") || finalInstituteId,
         });
-        toast.success('Batch updated successfully');
+        toast.success("Batch updated successfully");
       } else {
-        console.log("formData", {
+        await axios.post("http://localhost:7071/api/batch/create", {
           ...formData,
-          instituteId: finalInstituteId
+          instituteId: localStorage.getItem("selectedInstituteId") || finalInstituteId,
         });
-        
-        await axios.post('http://localhost:7071/api/batch/create', {
-          ...formData,
-          instituteId: localStorage.getItem("selectedInstituteId")
-        });
-        toast.success('Batch created successfully');
+        toast.success("Batch created successfully");
         setFormData(initialFormData);
       }
       navigate(-1);
     } catch (error: any) {
-        console.log("error",error);
-        
-      toast.error(error.response?.data?.message || 'Operation failed');
+      console.log("error", error);
+      toast.error(error.response?.data?.message || "Operation failed");
     } finally {
       setSubmitting(false);
     }
@@ -104,73 +297,76 @@ const ManageBatchForm: React.FC<Props> = ({ instituteId }) => {
   if (loading) return <p className="text-center text-gray-500">Loading...</p>;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 rounded shadow">
-      <h2 className="text-xl font-semibold text-gray-700 mb-4">
-        {isEditMode ? 'Edit Batch' : 'Add Batch'}
+    <form onSubmit={handleSubmit} className="space-y-6 bg-white p-8 rounded-b-xl shadow-md">
+      <h2 className="text-xl font-semibold text-gray-700 mb-2">
+        {isEditMode ? "Edit Batch" : "Add Batch"}
       </h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Name */}
         <div>
-          <label className="label">Name</label>
-          <input
-            type="text"
+          <FloatingInput
             name="name"
             value={formData.name}
             onChange={handleChange}
-            className="input"
+            label="Name"
           />
-          {errors.name && <p className="text-sm text-red-600">{errors.name}</p>}
+          {errors.name && <p className="text-sm text-red-600 mt-1">{errors.name}</p>}
         </div>
 
         {/* Code */}
         <div>
-          <label className="label">Code</label>
-          <input
-            type="text"
+          <FloatingInput
             name="code"
             value={formData.code}
             onChange={handleChange}
-            className="input uppercase"
+            label="Code"
+            className="uppercase"
           />
-          {errors.code && <p className="text-sm text-red-600">{errors.code}</p>}
+          {errors.code && <p className="text-sm text-red-600 mt-1">{errors.code}</p>}
         </div>
 
         {/* Year */}
         <div>
-          <label className="label">Year</label>
-          <input
-            type="text"
+          <FloatingInput
             name="year"
             value={formData.year}
             onChange={handleChange}
+            label="Year (YYYY)"
             placeholder={new Date().getFullYear().toString()}
-            className="input"
           />
-          {errors.year && <p className="text-sm text-red-600">{errors.year}</p>}
+          {errors.year && <p className="text-sm text-red-600 mt-1">{errors.year}</p>}
+        </div>
+
+        {/* Status toggle */}
+        <div className="flex items-center gap-3">
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              name="isActive"
+              checked={formData.isActive}
+              onChange={handleChange}
+              className="w-5 h-5 rounded border-gray-300"
+            />
+            <span className="text-sm text-gray-700">Active</span>
+          </label>
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4">
+      <div className="flex flex-col md:flex-row gap-4 pt-4">
         <button
           type="submit"
-          className="btn btn-primary w-full md:w-auto"
+          className="px-6 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition shadow-md w-full md:w-auto"
           disabled={submitting}
         >
-          {submitting
-            ? isEditMode
-              ? 'Updating...'
-              : 'Creating...'
-            : isEditMode
-            ? 'Update Batch'
-            : 'Create Batch'}
+          {submitting ? (isEditMode ? "Updating..." : "Creating...") : isEditMode ? "Update Batch" : "Create Batch"}
         </button>
 
         {isEditMode && (
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="btn btn-secondary w-full md:w-auto"
+            className="px-6 py-2 rounded-lg bg-gray-200 text-gray-700 font-medium hover:bg-gray-300 transition shadow-md w-full md:w-auto"
           >
             Cancel
           </button>
