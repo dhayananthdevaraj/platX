@@ -242,6 +242,8 @@ interface Batch {
   createdAt: string;
   createdBy?: { _id: string; name: string; email: string };
   instituteId?: { _id: string; name: string; code: string };
+  lastUpdatedBy?: { _id: string; name: string; email: string };
+  updatedAt?: string;
 }
 
 const Batches = () => {
@@ -258,6 +260,10 @@ const Batches = () => {
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
   const [showFilters, setShowFilters] = useState(false);
 
+  // Pagination / per-page
+  const [rowsPerPage, setRowsPerPage] = useState<number>(25);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+
   // Column toggle
   const [showColumnDropdown, setShowColumnDropdown] = useState(false);
   const [visibleColumns, setVisibleColumns] = useState<string[]>([
@@ -267,16 +273,16 @@ const Batches = () => {
     "status",
   ]);
 
-const allColumns = [
-  { key: "name", label: "Name" },
-  { key: "code", label: "Code" },
-  { key: "year", label: "Year" },
-  { key: "status", label: "Status" },
-  { key: "createdBy", label: "Created By" },
-  { key: "createdAt", label: "Created At" },
-  { key: "lastUpdatedBy", label: "Last Updated By" },   // ✅ new
-  { key: "updatedAt", label: "Updated At" },            // ✅ new
-];
+  const allColumns = [
+    { key: "name", label: "Name" },
+    { key: "code", label: "Code" },
+    { key: "year", label: "Year" },
+    { key: "status", label: "Status" },
+    { key: "createdBy", label: "Created By" },
+    { key: "createdAt", label: "Created At" },
+    { key: "lastUpdatedBy", label: "Last Updated By" },
+    { key: "updatedAt", label: "Updated At" },
+  ];
 
   const fetchBatches = async () => {
     try {
@@ -285,7 +291,6 @@ const allColumns = [
       );
       setBatches(res.data.batches || []);
 
-      // ✅ set institute name from first batch (API includes nested instituteId object)
       if (res.data.batches?.length > 0 && res.data.batches[0].instituteId) {
         setInstituteName(res.data.batches[0].instituteId.name);
       }
@@ -328,11 +333,20 @@ const allColumns = [
     return matchesSearch && matchesYear && matchesStatus;
   });
 
+  // Pagination logic
+  const totalPages = Math.max(1, Math.ceil(filteredBatches.length / rowsPerPage));
+  const paginated = filteredBatches.slice(
+    (currentPage - 1) * rowsPerPage,
+    currentPage * rowsPerPage
+  );
+
   const resetFilters = () => {
     setSearchQuery("");
     setYearFilter("");
     setStatusFilter("all");
     setVisibleColumns(["name", "code", "year", "status"]);
+    setRowsPerPage(25);
+    setCurrentPage(1);
   };
 
   return (
@@ -398,7 +412,10 @@ const allColumns = [
                     type="text"
                     placeholder="Search by name or code..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setCurrentPage(1);
+                    }}
                     className="input input-bordered pl-9 w-full"
                   />
                 </div>
@@ -408,7 +425,10 @@ const allColumns = [
                   type="text"
                   placeholder={`Year (e.g. ${new Date().getFullYear()})`}
                   value={yearFilter}
-                  onChange={(e) => setYearFilter(e.target.value)}
+                  onChange={(e) => {
+                    setYearFilter(e.target.value);
+                    setCurrentPage(1);
+                  }}
                   className="input input-bordered w-40"
                 />
 
@@ -416,13 +436,30 @@ const allColumns = [
                 <select
                   className="input input-bordered w-40"
                   value={statusFilter}
-                  onChange={(e) =>
-                    setStatusFilter(e.target.value as "all" | "active" | "inactive")
-                  }
+                  onChange={(e) => {
+                    setStatusFilter(e.target.value as "all" | "active" | "inactive");
+                    setCurrentPage(1);
+                  }}
                 >
                   <option value="all">All Status</option>
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
+                </select>
+
+                {/* Rows per page */}
+                <select
+                  className="input input-bordered w-40"
+                  value={rowsPerPage}
+                  onChange={(e) => {
+                    setRowsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                >
+                  {[25, 50, 75, 100].map((count) => (
+                    <option key={count} value={count}>
+                      {count} per page
+                    </option>
+                  ))}
                 </select>
 
                 {/* Column toggle */}
@@ -483,8 +520,8 @@ const allColumns = [
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {filteredBatches.length > 0 ? (
-                filteredBatches.map((batch) => (
+              {paginated.length > 0 ? (
+                paginated.map((batch) => (
                   <tr
                     key={batch._id}
                     className="group hover:bg-blue-50 transition-all cursor-pointer"
@@ -493,30 +530,29 @@ const allColumns = [
                     {allColumns
                       .filter((col) => visibleColumns.includes(col.key))
                       .map((col) => (
-                       <td key={col.key} className="px-6 py-4 text-gray-700">
-  {col.key === "status" ? (
-    <span
-      className={`px-3 py-1 text-xs font-medium rounded-full ${
-        batch.isActive
-          ? "bg-green-100 text-green-700 border border-green-200"
-          : "bg-red-100 text-red-700 border border-red-200"
-      }`}
-    >
-      {batch.isActive ? "Active" : "Inactive"}
-    </span>
-  ) : col.key === "createdBy" ? (
-    batch.createdBy?.name || "-"
-  ) : col.key === "lastUpdatedBy" ? (
-    batch.lastUpdatedBy?.name || "-"
-  ) : col.key === "createdAt" ? (
-    new Date(batch.createdAt).toLocaleDateString()
-  ) : col.key === "updatedAt" ? (
-    new Date(batch.updatedAt).toLocaleDateString()
-  ) : (
-    (batch as any)[col.key] || "-"
-  )}
-</td>
-
+                        <td key={col.key} className="px-6 py-4 text-gray-700">
+                          {col.key === "status" ? (
+                            <span
+                              className={`px-3 py-1 text-xs font-medium rounded-full ${
+                                batch.isActive
+                                  ? "bg-green-100 text-green-700 border border-green-200"
+                                  : "bg-red-100 text-red-700 border border-red-200"
+                              }`}
+                            >
+                              {batch.isActive ? "Active" : "Inactive"}
+                            </span>
+                          ) : col.key === "createdBy" ? (
+                            batch.createdBy?.name || "-"
+                          ) : col.key === "lastUpdatedBy" ? (
+                            batch.lastUpdatedBy?.name || "-"
+                          ) : col.key === "createdAt" ? (
+                            new Date(batch.createdAt).toLocaleDateString()
+                          ) : col.key === "updatedAt" ? (
+                            batch.updatedAt ? new Date(batch.updatedAt).toLocaleDateString() : "-"
+                          ) : (
+                            (batch as any)[col.key] || "-"
+                          )}
+                        </td>
                       ))}
                     <td
                       className="px-6 py-4 flex items-center justify-center gap-3"
@@ -558,6 +594,49 @@ const allColumns = [
           </table>
         )}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex justify-between items-center px-4 py-3 bg-white border border-gray-200 shadow-md rounded-b-xl mt-4">
+          <button
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            className={`px-3 py-1 rounded-md text-sm font-medium border shadow-sm ${
+              currentPage === 1
+                ? "text-gray-400 bg-gray-100 cursor-not-allowed"
+                : "text-blue-600 bg-gray-50 hover:bg-blue-100"
+            }`}
+          >
+            Prev
+          </button>
+
+          <div className="flex gap-2">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`px-3 py-1 rounded-md text-sm font-medium border shadow-sm transition ${
+                  currentPage === page ? "bg-blue-600 text-white shadow" : "bg-gray-50 text-gray-700 hover:bg-blue-100"
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+          </div>
+
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            className={`px-3 py-1 rounded-md text-sm font-medium border shadow-sm ${
+              currentPage === totalPages
+                ? "text-gray-400 bg-gray-100 cursor-not-allowed"
+                : "text-blue-600 bg-gray-50 hover:bg-blue-100"
+            }`}
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 };
