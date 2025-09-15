@@ -31,7 +31,7 @@ const CourseDetail: React.FC = () => {
       <div>
         {activeTab === "Enrollment" && <CourseEnrollment />}
         {activeTab === "Builder" &&courseId && (
-                    <CourseBuilder courseId={courseId} />
+        <CourseBuilder courseId={courseId} />
         )}
       </div>
     </div>

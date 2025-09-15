@@ -111,6 +111,10 @@ const CourseEnrollment: React.FC = () => {
       const data = res.data;
       const first: Enrollment | null = Array.isArray(data) ? (data[0] ?? null) : data ?? null;
       setEnrollment(first);
+      // ✅ Store batch ID in localStorage if available
+      if (first?.batchId?._id) {
+        localStorage.setItem("selectedBatchId", first.batchId._id);
+      }
     } catch {
       setEnrollment(null); // none yet
     }

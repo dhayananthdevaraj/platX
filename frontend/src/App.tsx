@@ -48,6 +48,11 @@ import CourseForm from './pages/Course/CourseForm';
 import CourseList from './pages/Course/CourseList';
 import CourseDetail from './pages/Course/CourseDetail';
 import CourseBuilder from './pages/Course/CourseBuilder';
+import EnrolledCourses from './pages/Course/CourseEnrollment';
+
+import ResultsPage from './pages/Resultes/ResultsPage';
+
+
 import ManageQuestionSetForm from './pages/QuestionSets/ManageQuestionSetForm';
 import AddQuestion from './pages/Questions/AddQuestion';
 import InstituteAdmins from './pages/InstituteAdmins/InstituteAdmins';
@@ -106,8 +111,18 @@ function App() {
                 </ProtectedRoute>
               }
             />
+
+            <Route
+              path="/my-courses"
+              element={
+                <ProtectedRoute>
+                  <EnrolledCourses />
+                </ProtectedRoute>
+              }
+            />
            
-          
+            {/* Results */}
+            <Route path="/results/:courseId/:testId" element={<ResultsPage />} />
 
             {/* ✅ All other routes stay inside Layout */}
             <Route
