@@ -3,9 +3,9 @@ const CourseModuleSectionTest = require('../models/courseModuleSectionTest.model
 
 // ✅ Add Test to Section
 const addTestToSection = async (body) => {
-  const { sectionId, testId, configurationId, visibilityId, order, createdBy, lastUpdatedBy } = body;
+  const { sectionId, testId, type, configurationId, visibilityId, order, createdBy, lastUpdatedBy } = body;
 
-  if (!sectionId || !testId || order === undefined || !createdBy) {
+  if (!sectionId || !type || !testId || order === undefined || !createdBy) {
     const err = new Error('Missing required fields: sectionId, testId, order, createdBy');
     err.status = 400;
     throw err;
@@ -14,6 +14,7 @@ const addTestToSection = async (body) => {
   const newTest = new CourseModuleSectionTest({
     sectionId,
     testId,
+    type,
     configurationId,
     visibilityId,
     order,
