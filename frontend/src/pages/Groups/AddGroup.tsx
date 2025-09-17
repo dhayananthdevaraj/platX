@@ -7,9 +7,7 @@ import BackButton from '../../components/BackButton';
 import ManageGroupForm from './ManageGroupForm';
 import UploadGroupsExcel from './UploadGroupsExcel';
 
-const AddGroup = () => {
-    console.log("Cameeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
-    
+const AddGroup = () => {    
   const { batchId } = useParams(); // Get batchId from URL params
   const [mode, setMode] = useState<'form' | 'excel'>('form');
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import axios from "axios";
+import { api } from "../../api/axiosInstance";
 import toast from "react-hot-toast";
 import ModuleList from "./ModuleList";
 import ModuleDetail from "./ModuleDetail";
@@ -13,7 +13,6 @@ interface Props {
 }
 
 const DEFAULT_USER_ID = "68561fdf1ed096393f84533c";
-const API_BASE = "http://localhost:7071/api";
 
 const CourseBuilder: React.FC<Props> = ({ courseId, batchId, currentUserId }) => {
   const [modules, setModules] = useState<ModuleItem[]>([]);
@@ -62,7 +61,7 @@ const CourseBuilder: React.FC<Props> = ({ courseId, batchId, currentUserId }) =>
           setSelectedModuleId(activeModules[0]._id ?? null);
         }
       } else {
-        const res = await axios.get(`${API_BASE}/module/course/${courseId}`);
+        const res = await api.get(`/module/course/${courseId}`);
         let list: ModuleItem[] = res.data?.modules || [];
         list = sanitizeModules(list);
 
@@ -118,8 +117,8 @@ const CourseBuilder: React.FC<Props> = ({ courseId, batchId, currentUserId }) =>
         updatedBy: userId,
       };
 
-      const response = await axios.post(`${API_BASE}/course/save-modules`, payload);
-      toast.success("Course saved successfully! 🎉");
+      const response = await api.post(`/course/save-modules`, payload);
+      toast.success("Course saved successfully!");
 
       let list: ModuleItem[] = response.data?.modules || [];
       list = sanitizeModules(list);

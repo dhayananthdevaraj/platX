@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import { api } from "../../api/axiosInstance";
 import toast from 'react-hot-toast';
 
 interface UploadGroupsExcelProps {
@@ -31,7 +31,7 @@ const UploadGroupsExcel: React.FC<UploadGroupsExcelProps> = ({ batchId }) => {
 
     try {
       setUploading(true);
-      const response = await axios.post('http://localhost:7071/api/importGroups', formData, {
+      const response = await api.post('/importGroups', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       toast.success(response.data.message || 'Groups uploaded successfully');

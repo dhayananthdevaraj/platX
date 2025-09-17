@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
+import { api } from "../../api/axiosInstance"; 
 import { CheckCircle, XCircle, User, Eye, AlertTriangle, Filter, X, ChevronDown, FileText, Download, Clock, CheckSquare } from "lucide-react";
 import AttemptDetails from "./AttemptDetails";
 import StudentDetails from "./StudentDetails";
@@ -38,11 +38,11 @@ const ResultsPage = () => {
 
             try {
                 // Fetch test results
-                const resResults = await axios.get(`/testresults/course/${courseId}/test/${testId}`);
+                const resResults = await api.get(`/testresults/course/${courseId}/test/${testId}`);
                 const resultsData = Array.isArray(resResults.data.results) ? resResults.data.results : [];
 
                 // Fetch batch students
-                const resStudents = await axios.get(`/students/batch/${batchId}`);
+                const resStudents = await api.get(`/students/batch/${batchId}`);
                 const studentsData = Array.isArray(resStudents.data.students) ? resStudents.data.students : [];
 
                 let extractedTestData = null;

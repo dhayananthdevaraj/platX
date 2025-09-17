@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { api } from "../api/axiosInstance"; 
 import toast from 'react-hot-toast';
 import { Plus } from 'lucide-react';
 
@@ -34,7 +34,7 @@ const AddQuestionsPage: React.FC = () => {
   const fetchQuestions = async () => {
     try {
       setLoading(true);
-      const res = await axios.get('/questions');
+      const res = await api.get('/questions');
       setQuestions(res.data.questions || []);
     } catch (error) {
       console.error('Error fetching questions:', error);
@@ -54,7 +54,7 @@ const AddQuestionsPage: React.FC = () => {
     if (!testId) return;
 
     try {
-      await axios.patch(`/tests/${testId}/add-questions`, {
+      await api.patch(`/tests/${testId}/add-questions`, {
         questionIds: selectedQuestionIds,
       });
       toast.success('Questions added to test');

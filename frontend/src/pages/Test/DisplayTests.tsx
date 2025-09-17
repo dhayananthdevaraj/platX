@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "../../api/axiosInstance"; 
 import {
   Search,
   Power,
@@ -52,7 +52,7 @@ const Tests: React.FC = () => {
   const fetchTests = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("http://localhost:7071/api/test/all");
+      const res = await api.get("/test/all");
       // Ensure data is always an array
       const data = Array.isArray(res.data) ? res.data : res.data.tests || [];
       setTests(data);
@@ -70,7 +70,7 @@ const Tests: React.FC = () => {
 
   const handleToggleActive = async (id: string, currentStatus: boolean) => {
     try {
-      await axios.put(`http://localhost:7071/api/test/update/${id}`, {
+      await api.put(`/test/update/${id}`, {
         isActive: !currentStatus,
       });
       toast.success(`Test ${!currentStatus ? "activated" : "deactivated"}`);

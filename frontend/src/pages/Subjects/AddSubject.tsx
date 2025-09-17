@@ -3,7 +3,7 @@ import UploadSubjectExcel from './UploadSubjectExcel';
 import ManageSubjectForm from './ManageSubjectForm';
 import BackButton from '../../components/BackButton';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { api } from "../../api/axiosInstance"; 
 import toast from 'react-hot-toast';
 
 const AddSubject = () => {
@@ -21,8 +21,8 @@ const AddSubject = () => {
     const fetchData = async () => {
       try {
         const [examRes, subjectRes] = await Promise.all([
-          axios.get(`/exam/${examId}`),
-          editId ? axios.get(`/subject/${editId}`) : Promise.resolve({ data: null }),
+          api.get(`/exam/${examId}`),
+          editId ? api.get(`/subject/${editId}`) : Promise.resolve({ data: null }),
         ]);
         setExam(examRes.data);
         setSubjectToEdit(subjectRes.data);

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import { api } from "../../api/axiosInstance"; 
 import { CheckCircle, XCircle, Search, X, SlidersHorizontal } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Plus, Edit3, Eye } from 'lucide-react';
@@ -53,9 +53,9 @@ const Subjects = () => {
     if (!examId) return;
     try {
       const [examRes, subRes, instRes] = await Promise.all([
-        axios.get(`http://localhost:7071/api/exam/${examId}`),
-        axios.get(`http://localhost:7071/api/subject/exam/${examId}`),
-        axios.get(`http://localhost:7071/api/institutes`),
+        api.get(`/exam/${examId}`),
+        api.get(`/subject/exam/${examId}`),
+        api.get(`/institutes`),
       ]);
       setExam(examRes.data);
       setSubjects(subRes.data || []);
@@ -73,7 +73,7 @@ const Subjects = () => {
 
   const handleToggleStatus = async (subject: Subject) => {
     try {
-      await axios.put(`/subject/${subject._id}`, { isActive: !subject.isActive });
+      await api.put(`/subject/${subject._id}`, { isActive: !subject.isActive });
       toast.success('Status updated');
       fetchData();
     } catch {

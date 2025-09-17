@@ -5,7 +5,7 @@ import {
   XCircle,
   X,
 } from 'lucide-react';
-import axios from 'axios';
+import { api } from "../../api/axiosInstance";
 import toast from 'react-hot-toast';
 import { FaPlus } from 'react-icons/fa6';
 import { FiEdit } from 'react-icons/fi';
@@ -50,8 +50,8 @@ const Exams = () => {
   const fetchData = async () => {
     try {
       const [resExams, resInstitutes] = await Promise.all([
-        axios.get('http://localhost:7071/api/exam/all'),
-        axios.get('http://localhost:7071/api/institutes'),
+        api.get('/exam/all'),
+        api.get('/institutes'),
       ]);
       setExams(resExams.data.exams || []);
       setInstitutes(resInstitutes.data.institutes || []);
@@ -68,7 +68,7 @@ const Exams = () => {
 
   const handleToggleStatus = async (exam: Exam) => {
     try {
-      await axios.put(`/exam/${exam._id}`, { isActive: !exam.isActive });
+      await api.put(`/exam/${exam._id}`, { isActive: !exam.isActive });
       toast.success('Status updated');
       fetchData();
     } catch {

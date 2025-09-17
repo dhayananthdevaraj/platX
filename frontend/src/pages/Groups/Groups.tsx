@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import { api } from "../../api/axiosInstance";
 import {
   PlusCircle,
   Pencil,
@@ -68,7 +68,7 @@ const Groups = () => {
   const fetchGroups = async () => {
     try {
       // Get all groups and filter by batchId
-      const res = await axios.get(`http://localhost:7071/api/group/all`);
+      const res = await api.get(`/group/all`);
       const batchGroups = res.data.filter((group: Group) => {
         const groupBatchId = typeof group.batchId === 'string' ? group.batchId : group.batchId._id;
         return groupBatchId === batchId;
@@ -90,7 +90,7 @@ const Groups = () => {
 
   const handleToggleActive = async (id: string, currentStatus: boolean) => {
     try {
-      await axios.put(`http://localhost:7071/api/group/${id}`, {
+      await api.put(`/group/${id}`, {
         isActive: !currentStatus,
       });
       toast.success(`Group marked as ${!currentStatus ? 'Active' : 'Inactive'}`);

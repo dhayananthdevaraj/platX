@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "../../api/axiosInstance";
 import { Mail, Power, Search, Phone, GraduationCap } from "lucide-react";
 import { FaPlus } from "react-icons/fa6";
 import { FiEdit } from "react-icons/fi";
@@ -44,8 +44,8 @@ const InstituteAdmins = () => {
 
   const fetchAdmins = async () => {
     try {
-      const res = await axios.get(
-        `http://localhost:7071/api/users?role=center_admin&instituteId=${instituteId}`
+      const res = await api.get(
+        `/users?role=center_admin&instituteId=${instituteId}`
       );
       setAdmins(res.data.users || []);
     } catch {
@@ -57,7 +57,7 @@ const InstituteAdmins = () => {
 
   const fetchInstitute = async () => {
     try {
-      const res = await axios.get(`http://localhost:7071/api/institutes/${instituteId}`);
+      const res = await api.get(`/institutes/${instituteId}`);
       setInstitute(res.data); // ✅ fix: response is the object itself
     } catch {
       toast.error("Failed to fetch institute details");
@@ -71,7 +71,7 @@ const InstituteAdmins = () => {
 
   const handleToggleActive = async (id: string, currentStatus: boolean) => {
     try {
-      await axios.put(`http://localhost:7071/api/users/${id}`, {
+      await api.put(`/users/${id}`, {
         isActive: !currentStatus,
       });
       toast.success(`Marked as ${!currentStatus ? "Active" : "Inactive"}`);

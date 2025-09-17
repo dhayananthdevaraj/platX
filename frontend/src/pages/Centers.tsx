@@ -12,7 +12,7 @@ import {
   Users,
   Settings
 } from 'lucide-react';
-import axios from 'axios';
+import { api } from "../api/axiosInstance"; 
 import toast from 'react-hot-toast';
 import LoadingSpinner from '../components/LoadingSpinner';
 
@@ -83,7 +83,7 @@ const Centers: React.FC = () => {
   const fetchCenters = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('/centers');
+      const response = await api.get('/centers');
       setCenters(response.data.centers);
     } catch (error) {
       console.error('Failed to fetch centers:', error);
@@ -98,10 +98,10 @@ const Centers: React.FC = () => {
     
     try {
       if (editingCenter) {
-        await axios.put(`/centers/${editingCenter._id}`, formData);
+        await api.put(`/centers/${editingCenter._id}`, formData);
         toast.success('Center updated successfully');
       } else {
-        await axios.post('/centers', formData);
+        await api.post('/centers', formData);
         toast.success('Center created successfully');
       }
 
@@ -133,7 +133,7 @@ const Centers: React.FC = () => {
     if (!window.confirm('Are you sure you want to delete this center?')) return;
     
     try {
-      await axios.delete(`/centers/${centerId}`);
+      await api.delete(`/centers/${centerId}`);
       toast.success('Center deleted successfully');
       fetchCenters();
     } catch (error) {

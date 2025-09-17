@@ -4,6 +4,8 @@ import Select from "react-select";
 import { X, Plus, AlertCircle, CheckCircle } from "lucide-react";
 import { api } from "../../api/axiosInstance";
 import toast from "react-hot-toast";
+import ReactQuill from "react-quill";
+import 'react-quill/dist/quill.snow.css';
 
 // --- Validation Types ---
 interface ValidationErrors {
@@ -340,29 +342,32 @@ const ManageQuestionForm: React.FC = () => {
                                 <label className="block text-sm font-medium text-gray-700">
                                     Question Text <span className="text-red-500">*</span>
                                 </label>
-                                <textarea
+
+                                <div className="pb-2">
+                                <ReactQuill
                                     value={questionText}
-                                    onChange={(e) => setQuestionText(e.target.value)}
-                                    rows={4}
-                                    className={`w-full border rounded-lg p-4 focus:outline-none focus:ring-2 transition-all resize-none ${errors.questionText
-                                            ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                                            : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                                    onChange={setQuestionText}
+                                    style={{ height: '250px', border: 'none' }}   // ⬅️ sets height
+                                    modules={{
+                                        toolbar: [
+                                            [{ header: [1, 2, 3, false] }],
+                                            ['bold', 'italic', 'underline', 'strike'],
+                                            [{ list: 'ordered' }, { list: 'bullet' }],
+                                            ['link', 'image'], // <-- image upload
+                                            ['clean'],
+                                        ],
+                                    }}
+                                    formats={[
+                                        'header',
+                                        'bold', 'italic', 'underline', 'strike',
+                                        'list', 'bullet',
+                                        'link', 'image'
+                                    ]}
+                                    className={`w-full border rounded-lg mb-10 ${errors.questionText
+                                            ? 'border-red-300 focus:border-red-500'
+                                            : 'border-gray-300 focus:border-blue-500'
                                         }`}
-                                    placeholder="Enter your question text here..."
-                                    maxLength={1000}
                                 />
-                                <div className="flex justify-between items-center">
-                                    <div>
-                                        {errors.questionText && (
-                                            <div className="flex items-center text-red-500 text-sm">
-                                                <AlertCircle size={14} className="mr-1" />
-                                                {errors.questionText}
-                                            </div>
-                                        )}
-                                    </div>
-                                    <span className="text-sm text-gray-400">
-                                        {questionText.length}/1000
-                                    </span>
                                 </div>
                             </div>
 

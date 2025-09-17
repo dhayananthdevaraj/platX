@@ -13,7 +13,7 @@ import {
   Shield,
   Building2
 } from 'lucide-react';
-import axios from 'axios';
+import { api } from "../api/axiosInstance"; 
 import toast from 'react-hot-toast';
 import LoadingSpinner from '../components/LoadingSpinner';
 
@@ -77,7 +77,7 @@ const Users: React.FC = () => {
       const params = new URLSearchParams();
       if (filterRole) params.append('role', filterRole);
       
-      const response = await axios.get(`/users?${params.toString()}`);
+      const response = await api.get(`/users?${params.toString()}`);
       setUsers(response.data.users);
     } catch (error) {
       console.error('Failed to fetch users:', error);
@@ -89,7 +89,7 @@ const Users: React.FC = () => {
 
   const fetchCenters = async () => {
     try {
-      const response = await axios.get('/centers');
+      const response = await api.get('/centers');
       setCenters(response.data.centers);
     } catch (error) {
       console.error('Failed to fetch centers:', error);
@@ -106,10 +106,10 @@ const Users: React.FC = () => {
       };
 
       if (editingUser) {
-        await axios.put(`/users/${editingUser._id}`, userData);
+        await api.put(`/users/${editingUser._id}`, userData);
         toast.success('User updated successfully');
       } else {
-        await axios.post('/auth/register', userData);
+        await api.post('/auth/register', userData);
         toast.success('User created successfully');
       }
 
@@ -149,7 +149,7 @@ const Users: React.FC = () => {
     if (!window.confirm('Are you sure you want to delete this user?')) return;
     
     try {
-      await axios.delete(`/users/${userId}`);
+      await api.delete(`/users/${userId}`);
       toast.success('User deleted successfully');
       fetchUsers();
     } catch (error) {

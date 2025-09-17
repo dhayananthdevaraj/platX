@@ -13,7 +13,7 @@ import {
   BookOpen,
   Target
 } from 'lucide-react';
-import axios from 'axios';
+import { api } from "../api/axiosInstance"; 
 import toast from 'react-hot-toast';
 
 const Profile: React.FC = () => {
@@ -40,7 +40,7 @@ const Profile: React.FC = () => {
     
     try {
       setLoading(true);
-      await axios.put(`/users/${user?.id}`, formData);
+      await api.put(`/users/${user?.id}`, formData);
       toast.success('Profile updated successfully');
       setIsEditing(false);
     } catch (error: any) {

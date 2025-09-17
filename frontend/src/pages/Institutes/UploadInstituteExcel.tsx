@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import { api } from "../../api/axiosInstance";
 import toast from 'react-hot-toast';
 
 const UploadInstituteExcel: React.FC = () => {
@@ -26,7 +26,7 @@ const UploadInstituteExcel: React.FC = () => {
 
     try {
       setUploading(true);
-      const response = await axios.post('/institutes/import', formData, {
+      const response = await api.post('/institutes/import', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       toast.success(response.data.message || 'Institutes uploaded successfully');

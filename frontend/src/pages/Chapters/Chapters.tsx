@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import { api } from "../../api/axiosInstance";
 import { CheckCircle, XCircle, Plus, Edit3, Eye, Search, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Link, useParams, useNavigate } from 'react-router-dom';
@@ -53,9 +53,9 @@ const Chapters = () => {
     if (!subjectId) return;
     try {
       const [subjectRes, chapterRes, instRes] = await Promise.all([
-        axios.get(`http://localhost:7071/api/subject/${subjectId}`),
-        axios.get(`http://localhost:7071/api/chapter/all`),
-        axios.get(`http://localhost:7071/api/institutes`),
+        api.get(`/subject/${subjectId}`),
+        api.get(`/chapter/all`),
+        api.get(`/institutes`),
       ]);
 
       setSubject(subjectRes.data);
@@ -82,7 +82,7 @@ const Chapters = () => {
 
   const handleToggleStatus = async (chapter: Chapter) => {
     try {
-      await axios.put(`http://localhost:7071/api/chapter/update/${chapter._id}`, {
+      await api.put(`/chapter/update/${chapter._id}`, {
         isActive: !chapter.isActive,
       });
       toast.success('Status updated');

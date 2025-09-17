@@ -1,5 +1,5 @@
 import React from "react";
-import { ChevronLeft, User, CheckCircle, XCircle, Eye, AlertTriangle } from "lucide-react";
+import { ChevronLeft, User, Eye } from "lucide-react";
 
 const StudentDetails = ({
     selectedStudent,

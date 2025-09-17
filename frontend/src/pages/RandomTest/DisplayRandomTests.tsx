@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "../../api/axiosInstance"; 
 import { PlusCircle, Pencil, Eye, X, Search } from "lucide-react";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -22,7 +22,7 @@ const DisplayRandomTests = () => {
 
   const fetchRandomTests = async () => {
     try {
-      const res = await axios.get("http://localhost:7071/api/randomtest/all");
+      const res = await api.get("/randomtest/all");
       setTests(res.data.randomTests);
     } catch (error) {
       console.error("Failed to fetch random tests", error);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
+import { api } from "../../api/axiosInstance"; 
 import toast from "react-hot-toast";
 import Select from "react-select";
 import FileUpload from "../../components/FileUpload"; // ✅ import your custom file uploader
@@ -21,8 +21,8 @@ const UploadQuestionSetExcel: React.FC<UploadQuestionSetExcelProps> = ({ institu
 
     // Fetch chapters
     useEffect(() => {
-        axios
-            .get("http://localhost:7071/api/chapter/all")
+        api
+            .get("/chapter/all")
             .then((res) => {
                 const chapterList = Array.isArray(res.data)
                     ? res.data
@@ -66,8 +66,8 @@ const UploadQuestionSetExcel: React.FC<UploadQuestionSetExcelProps> = ({ institu
 
             const token = localStorage.getItem("token");
 
-            const response = await axios.post(
-                "http://localhost:7071/api/importQuestionSets",
+            const response = await api.post(
+                "/importQuestionSets",
                 formData,
                 {
                     headers: {

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import { api } from "../../api/axiosInstance"; 
 import toast from 'react-hot-toast';
 
 interface Props {
@@ -33,7 +33,7 @@ const UploadSubjectExcel: React.FC<Props> = ({ examId }) => {
 
     try {
       setUploading(true);
-      const response = await axios.post('/subjects/import', formData, {
+      const response = await api.post('/subjects/import', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       toast.success(response.data.message || 'Subjects uploaded successfully');

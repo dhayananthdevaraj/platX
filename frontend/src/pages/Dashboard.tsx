@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "../api/axiosInstance"; 
 import {
   Users,
   School,
@@ -27,11 +27,11 @@ const Dashboard = () => {
       setLoading(true);
       const [usersRes, institutesRes, questionSetsRes, testsRes, coursesRes] =
         await Promise.all([
-          axios.get("http://localhost:7071/api/users"),
-          axios.get("http://localhost:7071/api/institutes"),
-          axios.get("http://localhost:7071/api/questionset/all"),
-          axios.get("http://localhost:7071/api/test/all"),
-          axios.get("http://localhost:7071/api/course/all"),
+          api.get("/users"),
+          api.get("/institutes"),
+          api.get("/questionset/all"),
+          api.get("/test/all"),
+          api.get("/course/all"),
         ]);
 
       setStats({

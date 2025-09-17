@@ -11,7 +11,7 @@ import {
   ArrowRight,
   Send
 } from 'lucide-react';
-import axios from 'axios';
+import { api } from "../api/axiosInstance"; 
 import toast from 'react-hot-toast';
 import LoadingSpinner from '../components/LoadingSpinner';
 
@@ -61,7 +61,7 @@ const TestTaking: React.FC = () => {
   }, [id]);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval>;
     console.log('testStarted:', testStarted, 'timeLeft:', timeLeft);
     
     if (testStarted && timeLeft > 0) {
@@ -84,7 +84,7 @@ const TestTaking: React.FC = () => {
   const fetchTest = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`/tests/${id}`);
+      const response = await api.get(`/tests/${id}`);
       setTest(response.data.test);
       setTimeLeft(response.data.test.duration * 60); // Convert minutes to seconds
     } catch (error: any) {
@@ -148,7 +148,7 @@ const TestTaking: React.FC = () => {
         endTime: endTime.toISOString()
       };
 
-      await axios.post('/results/submit', submissionData);
+      await api.post('/results/submit', submissionData);
       
       toast.success(autoSubmit ? 'Test auto-submitted!' : 'Test submitted successfully!');
       navigate('/results');

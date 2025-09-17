@@ -11,7 +11,7 @@ import {
   Calendar,
   Award
 } from 'lucide-react';
-import axios from 'axios';
+import { api } from "../api/axiosInstance"; 
 import LoadingSpinner from '../components/LoadingSpinner';
 
 interface Result {
@@ -71,7 +71,7 @@ const Results: React.FC = () => {
         endpoint = `/results/student/${user.id}`;
       }
       
-      const response = await axios.get(endpoint);
+      const response = await api.get(endpoint);
       setResults(response.data.results);
     } catch (error) {
       console.error('Failed to fetch results:', error);

@@ -1,6 +1,6 @@
 // src/pages/Questions/UploadQuestionExcel.tsx
 import React, { useState } from "react";
-import axios from "axios";
+import { api } from "../../api/axiosInstance"; 
 import toast from "react-hot-toast";
 import FileUpload from "../../components/FileUpload"; // ✅ import your reusable FileUpload
 
@@ -37,8 +37,8 @@ const UploadQuestionExcel: React.FC<UploadQuestionExcelProps> = ({
 
         try {
             setUploading(true);
-            const response = await axios.post(
-                "http://localhost:7071/api/importQuestions",
+            const response = await api.post(
+                "/importQuestions",
                 formData,
                 {
                     headers: { "Content-Type": "multipart/form-data" },

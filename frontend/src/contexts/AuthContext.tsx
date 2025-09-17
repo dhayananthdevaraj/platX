@@ -6,6 +6,8 @@ interface User {
   id: string;
   name: string;
   email: string;
+  phone: number;
+  createdAt: any;
   role: 'superadmin' | 'contentadmin' | 'trainer' | 'student' | 'centeradmin';
   center?: any;
   studentDetails?: any;

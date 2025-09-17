@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import toast from 'react-hot-toast';
+import { api } from "../../api/axiosInstance";
 import ManageExamForm from './ManageExamForm';
 import BackButton from '../../components/BackButton';
 import { useNavigate } from 'react-router-dom';
@@ -16,7 +16,7 @@ const AddExam = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    axios
+    api
       .get('/institutes')
       .then((res) => setInstitutes(res.data.institutes || []))
       .catch(() => toast.error('Failed to load institutes'))

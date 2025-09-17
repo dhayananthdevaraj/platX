@@ -2,9 +2,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import InlineEdit from "./InlineEdit";
+import { api } from "../../api/axiosInstance";
 import SectionContainer from "./Section/SectionContainer";
 import type { ModuleItem, Section, TestLite } from "./types/course";
-import axios from "axios";
 import { db } from "../../db"; // ✅ Import Dexie DB
 import type { Module } from "../../db";
 
@@ -14,7 +14,6 @@ interface Props {
   onChanged: (nextModuleId?: string | null) => void; // ✅ Enhanced to handle module selection
 }
 
-const API_BASE = "http://localhost:7071/api";
 
 const ModuleDetail: React.FC<Props> = ({ module, userId, onChanged }) => {
   const [moduleData, setModuleData] = useState<ModuleItem>(module);
@@ -37,7 +36,7 @@ const ModuleDetail: React.FC<Props> = ({ module, userId, onChanged }) => {
   const fetchTests = async () => {
     try {
       setLoadingTests(true);
-      const res = await axios.get(`${API_BASE}/test/all`);
+      const res = await api.get(`/test/all`);
       setAllTests(res.data?.tests || []);
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Failed to load tests");

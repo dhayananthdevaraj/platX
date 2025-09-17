@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import { api } from "../../api/axiosInstance";
 import { Pencil, PlusCircle, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -11,7 +11,6 @@ interface Course {
   isActive: boolean;
 }
 
-const API_BASE = "http://localhost:7071/api";
 
 const CourseList: React.FC = () => {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -20,7 +19,7 @@ const CourseList: React.FC = () => {
 
   const fetchCourses = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/course/all`);
+      const res = await api.get(`/course/all`);
       setCourses(res.data.courses);
     } catch {
       toast.error("Failed to load courses");
@@ -32,7 +31,7 @@ const CourseList: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this course?")) return;
     try {
-      await axios.delete(`${API_BASE}/course/${id}`); // ✅ corrected endpoint
+      await api.delete(`/course/${id}`); // ✅ corrected endpoint
       toast.success("Course deleted");
       fetchCourses();
     } catch {
@@ -47,7 +46,7 @@ const CourseList: React.FC = () => {
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">📚 Courses</h1>
+        <h1 className="text-2xl font-bold">Courses</h1>
         <Link
           to="/courses/create"
           className="flex items-center bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
