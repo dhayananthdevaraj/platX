@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "../../api/axiosInstance";
 import toast from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
 import BackButton from "../../components/BackButton";
@@ -43,8 +43,8 @@ const ManageInstituteForm: React.FC = () => {
   useEffect(() => {
     if (isEditMode) {
       setLoading(true);
-      axios
-        .get(`http://localhost:7071/api/institutes/${id}`)
+      api
+        .get(`/institutes/${id}`)
         .then((res) => setFormData(res.data))
         .catch(() => toast.error("Failed to fetch institute details"))
         .finally(() => setLoading(false));
@@ -90,10 +90,10 @@ const ManageInstituteForm: React.FC = () => {
     setSubmitting(true);
     try {
       if (isEditMode) {
-        await axios.put(`http://localhost:7071/api/institutes/${id}`, formData);
+        await api.put(`/institutes/${id}`, formData);
         toast.success("Institute updated successfully");
       } else {
-        await axios.post("http://localhost:7071/api/institute/create", formData);
+        await api.post("/institute/create", formData);
         toast.success("Institute created successfully");
         setFormData(initialFormData);
       }

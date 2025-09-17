@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Select from "react-select";
 import { X, Plus, AlertCircle, CheckCircle } from "lucide-react";
-import axios from "axios";
+import { api } from "../../api/axiosInstance";
 import toast from "react-hot-toast";
 
 // --- Validation Types ---
@@ -163,8 +163,8 @@ const ManageQuestionForm: React.FC = () => {
     useEffect(() => {
         if (!id) return;
         setLoading(true);
-        axios
-            .get(`http://localhost:7071/api/question/${id}`)
+        api
+            .get(`/question/${id}`)
             .then((res) => {
                 const q = res.data;
                 setQuestionText(q.text || "");
@@ -289,11 +289,11 @@ const ManageQuestionForm: React.FC = () => {
 
             if (id) {
                 // Update Question
-                await axios.put(`http://localhost:7071/api/question/update/${id}`, payload);
+                await api.put(`/question/update/${id}`, payload);
                 toast.success("Question updated successfully!");
             } else {
                 // Create New Question
-                await axios.post(`http://localhost:7071/api/question/create`, payload);
+                await api.post(`/question/create`, payload);
                 toast.success("Question created successfully!");
             }
 

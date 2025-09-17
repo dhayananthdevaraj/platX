@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "../../api/axiosInstance";
 import toast from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
 import Select from "react-select";
@@ -43,8 +43,8 @@ const ManageQuestionSetForm: React.FC = () => {
 
     // Fetch chapters
     useEffect(() => {
-        axios
-            .get("http://localhost:7071/api/chapter/all")
+        api
+            .get("/chapter/all")
             .then((res) => {
                 const chapterList = Array.isArray(res.data)
                     ? res.data
@@ -56,7 +56,7 @@ const ManageQuestionSetForm: React.FC = () => {
 
     // Fetch institutes
     useEffect(() => {
-        axios
+        api
             .get("http://localhost:7071/api/institutes")
             .then((res) => {
                 const instituteList = Array.isArray(res.data)
@@ -71,8 +71,8 @@ const ManageQuestionSetForm: React.FC = () => {
     useEffect(() => {
         if (isEditMode) {
             setLoading(true);
-            axios
-                .get(`http://localhost:7071/api/questionset/${id}`)
+            api
+                .get(`/questionset/${id}`)
                 .then((res) => {
                     const data = res.data;
                     setFormData({
@@ -180,8 +180,8 @@ const ManageQuestionSetForm: React.FC = () => {
                     ...formData,
                     lastUpdatedBy: userId,
                 };
-                await axios.put(
-                    `http://localhost:7071/api/questionset/update/${id}`,
+                await api.put(
+                    `/questionset/update/${id}`,
                     payload,
                     {
                         headers: {
@@ -195,8 +195,8 @@ const ManageQuestionSetForm: React.FC = () => {
                     ...formData,
                     createdBy: userId,
                 };
-                await axios.post(
-                    "http://localhost:7071/api/questionset/create",
+                await api.post(
+                    "/questionset/create",
                     payload
                 );
                 toast.success("Question Set created successfully");

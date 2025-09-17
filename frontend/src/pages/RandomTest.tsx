@@ -1,10 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
-import axios from "axios";
+import { api } from "../api/axiosInstance";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../contexts/AuthContext";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
-const API_BASE = "http://localhost:7071/api";
 
 const tabs = ["Details", "Sections", "Question Sets", "Preview"] as const;
 type Tab = (typeof tabs)[number];
@@ -80,7 +79,7 @@ const RandomTestBuilder: React.FC = () => {
   useEffect(() => {
     (async () => {
       try {
-        const res = await axios.get(`${API_BASE}/questionset/all`);
+        const res = await api.get(`/questionset/all`);
         setQuestionSets(res.data?.questionSets || []);
       } catch {
         toast.error("Failed to load question sets");
@@ -103,7 +102,7 @@ const RandomTestBuilder: React.FC = () => {
     try {
       console.log("testId"+testId);
       
-      const res = await axios.get(`${API_BASE}/randomtest/${testId}`);
+      const res = await api.get(`/randomtest/${testId}`);
       console.log("res fetchTestDetails"+JSON.stringify(res.data));
       
       normalizeAndInitialize(res.data);
@@ -170,7 +169,7 @@ const normalizeAndInitialize = async (test: any) => {
     if (!setId) return;
     if (availabilityBySet[setId]) return; // already cached
     try {
-      const res = await axios.get(`${API_BASE}/question/questionset/${setId}`);
+      const res = await api.get(`/question/questionset/${setId}`);
       const questions = res.data || [];
       const counts: Availability = { easy: 0, medium: 0, hard: 0 };
       for (const q of questions) {
@@ -358,13 +357,13 @@ const normalizeAndInitialize = async (test: any) => {
       };
 
       if (formData._id) {
-        await axios.put(
-          `${API_BASE}/randomtest/update/${formData._id}`,
+        await api.put(
+          `/randomtest/update/${formData._id}`,
           payload
         );
         toast.success("Random Test updated successfully");
       } else {
-        await axios.post(`${API_BASE}/randomtest/create`, payload);
+        await api.post(`/randomtest/create`, payload);
         toast.success("Random Test created successfully");
       }
 

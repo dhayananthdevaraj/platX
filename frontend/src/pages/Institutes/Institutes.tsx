@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "../../api/axiosInstance";
 import {
   Mail,
   Power,
@@ -53,7 +53,7 @@ const Institutes = () => {
 
   const fetchInstitutes = async () => {
     try {
-      const res = await axios.get("http://localhost:7071/api/institutes");
+      const res = await api.get(`/institutes`);
       console.log("ins",res);
       setInstitutes(res.data.institutes || []);
     } catch {
@@ -69,7 +69,7 @@ const Institutes = () => {
 
   const handleToggleActive = async (id: string, currentStatus: boolean) => {
     try {
-      await axios.put(`http://localhost:7071/api/institutes/${id}`, {
+      await api.put(`/institutes/${id}`, {
         isActive: !currentStatus,
       });
       toast.success(`Marked as ${!currentStatus ? "Active" : "Inactive"}`);

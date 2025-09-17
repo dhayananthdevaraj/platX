@@ -8,6 +8,8 @@ interface FloatingInputProps {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   label: string;
+  className?: string;
+  placeholder?: string;
 }
 
 const FloatingInput: React.FC<FloatingInputProps> = ({

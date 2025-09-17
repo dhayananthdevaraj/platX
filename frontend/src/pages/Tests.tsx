@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "../api/axiosInstance";
 import { toast } from "react-hot-toast";
 import { useAuth } from "../contexts/AuthContext";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
@@ -73,7 +73,7 @@ const TestBuilder: React.FC = () => {
 
   const fetchQuestionSets = async () => {
     try {
-      const res = await axios.get("http://localhost:7071/api/questionset/all");
+      const res = await api.get("/questionset/all");
       setQuestionSets(res.data.questionSets || []);
     } catch {
       toast.error("Failed to load question sets");
@@ -82,7 +82,7 @@ const TestBuilder: React.FC = () => {
 
   const fetchTestDetails = async (testId: string) => {
     try {
-      const res = await axios.get(`http://localhost:7071/api/test/${testId}`);
+      const res = await api.get(`/test/${testId}`);
       normalizeAndInitialize(res.data);
     } catch {
       toast.error("Failed to load test details");
@@ -151,8 +151,8 @@ const TestBuilder: React.FC = () => {
     if (questions[setId]?.length) return;
 
     try {
-      const res = await axios.get(
-        `http://localhost:7071/api/question/questionset/${setId}`
+      const res = await api.get(
+        `/question/questionset/${setId}`
       );
       setQuestions((prev) => ({ ...prev, [setId]: res.data || [] }));
     } catch {
@@ -311,13 +311,13 @@ const TestBuilder: React.FC = () => {
       };
 
       if (formData._id) {
-        await axios.put(
-          `http://localhost:7071/api/test/update/${formData._id}`,
+        await api.put(
+          `/test/update/${formData._id}`,
           payload
         );
         toast.success("Test updated successfully");
       } else {
-        await axios.post("http://localhost:7071/api/test/create", payload);
+        await api.post("/test/create", payload);
         toast.success("Test created successfully");
       }
       navigate("/view-tests");

@@ -2,30 +2,6 @@ const CourseModule = require('../models/courseModule.model');
 const ModuleSection = require('../models/courseModuleSection.model');
 const SectionTest = require('../models/courseModuleSectionTest.model');
 
-// ✅ Create Module
-const createModule = async ({ courseId, moduleName, moduleDescription, order, createdBy, lastUpdatedBy }) => {
-  if (!courseId || !moduleName || order === undefined || !createdBy) {
-    const err = new Error('Missing required fields: courseId, moduleName, order, createdBy');
-    err.status = 400;
-    throw err;
-  }
-
-  const newModule = new CourseModule({
-    courseId,
-    moduleName,
-    moduleDescription,
-    order,
-    createdBy,
-    lastUpdatedBy,
-  });
-
-  await newModule.save();
-
-  return {
-    message: 'Module created successfully',
-    moduleId: newModule._id,
-  };
-};
 
 // ✅ Get All Modules for a Course
 const getModulesByCourse = async (courseId) => {
@@ -98,17 +74,6 @@ const updateModule = async (moduleId, updateData) => {
   return updated;
 };
 
-// ✅ Delete Module
-const deleteModule = async (moduleId) => {
-  const deleted = await CourseModule.findByIdAndDelete(moduleId);
-  if (!deleted) {
-    const err = new Error('Module not found or delete failed');
-    err.status = 404;
-    throw err;
-  }
-
-  return { message: 'Module deleted successfully', moduleId };
-};
 
 // ✅ Reorder Modules
 const reorderModules = async (courseId, moduleOrder) => {
@@ -131,10 +96,8 @@ const reorderModules = async (courseId, moduleOrder) => {
 };
 
 module.exports = {
-  createModule,
   getModulesByCourse,
   getModuleById,
   updateModule,
-  deleteModule,
   reorderModules,
 };

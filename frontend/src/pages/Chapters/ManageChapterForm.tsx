@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import axios from 'axios';
+import { api } from "../../api/axiosInstance";
 import toast from 'react-hot-toast';
 import { ChevronDown } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext'; // ✅ Import your Auth Context
@@ -47,7 +47,7 @@ const ManageChapterForm: React.FC<Props> = ({ subject, chapterToEdit, onSuccess,
     if (subject.instituteId && subject.instituteId.length > 0) {
       const fetchInstitutes = async () => {
         try {
-          const res = await axios.get('/institutes');
+          const res = await api.get('/institutes');
           const subjectInstitutes = res.data.institutes.filter((inst: Institute) =>
             subject.instituteId?.includes(inst._id)
           );
@@ -110,8 +110,8 @@ const ManageChapterForm: React.FC<Props> = ({ subject, chapterToEdit, onSuccess,
 
     try {
       const res = chapterToEdit
-        ? await axios.put(`/chapter/update/${chapterToEdit._id}`, payload)
-        : await axios.post('/chapter/create', payload);
+        ? await api.put(`/chapter/update/${chapterToEdit._id}`, payload)
+        : await api.post('/chapter/create', payload);
 
       toast.success(`Chapter ${chapterToEdit ? 'updated' : 'created'} successfully`);
       onSuccess(res.data.chapter || res.data);

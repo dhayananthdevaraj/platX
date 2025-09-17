@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "../../../api/axiosInstance";
 import Select from "react-select";
 import toast from "react-hot-toast";
 
@@ -21,7 +21,6 @@ interface TestVisibility {
   excludeCandidates: string[];
 }
 
-const API_BASE = "http://localhost:7071/api";
 
 const TestVisibilityManager: React.FC<{ courseId: string; testId: string }> = ({
   courseId,
@@ -43,7 +42,7 @@ const TestVisibilityManager: React.FC<{ courseId: string; testId: string }> = ({
   useEffect(() => {
     const fetchBatchId = async () => {
       try {
-        const res = await axios.get(`${API_BASE}/enrollments/course/${courseId}`);
+        const res = await api.get(`/enrollments/course/${courseId}`);
         if (res.data && res.data.length > 0) {
           setBatchId(res.data[0].batchId._id);
         } else {
@@ -65,14 +64,14 @@ const TestVisibilityManager: React.FC<{ courseId: string; testId: string }> = ({
       try {
         setLoading(true);
 
-        const groupsRes = await axios.get(`${API_BASE}/group/batch/${batchId}`);
+        const groupsRes = await api.get(`/group/batch/${batchId}`);
         setGroups(groupsRes.data);
 
-        const candidatesRes = await axios.get(`${API_BASE}/students/batch/${batchId}`);
+        const candidatesRes = await api.get(`/students/batch/${batchId}`);
         setCandidates(candidatesRes.data.students);
 
-        const visRes = await axios.get(
-          `${API_BASE}/test-visibility/${courseId}/${testId}`
+        const visRes = await api.get(
+          `/test-visibility/${courseId}/${testId}`
         );
 
         if (visRes.data && visRes.data._id) {
@@ -112,13 +111,13 @@ const TestVisibilityManager: React.FC<{ courseId: string; testId: string }> = ({
   const handleSave = async () => {
     try {
       if (isExistingRecord && visibility._id) {
-        await axios.put(
-          `${API_BASE}/test-visibility/update/${visibility._id}`,
+        await api.put(
+          `/test-visibility/update/${visibility._id}`,
           visibility
         );
         toast.success("Test visibility updated successfully");
       } else {
-        await axios.post(`${API_BASE}/test-visibility/create`, {
+        await api.post(`/test-visibility/create`, {
           ...visibility,
           courseId,
           testId,

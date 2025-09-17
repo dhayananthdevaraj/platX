@@ -1,7 +1,6 @@
 // src/pages/Questions.tsx
-// src/pages/Questions.tsx
 import React, { useEffect, useState, useRef } from "react";
-import axios from "axios";
+import { api } from "../../api/axiosInstance";
 import { PlusCircle, Pencil, Trash2, Search, Filter, BookOpen } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -74,8 +73,8 @@ const Questions: React.FC = () => {
 
     const fetchQuestions = async () => {
         try {
-            const res = await axios.get(
-                `http://localhost:7071/api/question/questionset/${questionSetId}`
+            const res = await api.get(
+                `/question/questionset/${questionSetId}`
             );
             const data = res.data;
 
@@ -150,7 +149,7 @@ const Questions: React.FC = () => {
             switch (action) {
                 case "delete":
                     for (const id of selectedIds) {
-                        await axios.put(`http://localhost:7071/api/question/update/${id}`, {
+                        await api.put(`/question/update/${id}`, {
                             isActive: false,
                         });
                     }
@@ -166,8 +165,8 @@ const Questions: React.FC = () => {
 
                 case "clone":
                     try {
-                        const res = await axios.post(
-                            `http://localhost:7071/api/question/clone`,
+                        const res = await api.post(
+                            `/question/clone`,
                             {
                                 questionIds: selectedIds,
                                 targetQuestionSetId: questionSetId,
@@ -199,7 +198,7 @@ const Questions: React.FC = () => {
 
     const openMoveModal = async () => {
         try {
-            const res = await axios.get("http://localhost:7071/api/questionset/all");
+            const res = await api.get("/questionset/all");
             const data = res.data;
 
             if (Array.isArray(data.questionSets)) {
@@ -222,7 +221,7 @@ const Questions: React.FC = () => {
         }
 
         try {
-            const res = await axios.post(`http://localhost:7071/api/question/move`, {
+            const res = await api.post(`/question/move`, {
                 questionIds: selectedIds,
                 targetQuestionSetId: selectedTargetSet,
             });
@@ -251,7 +250,7 @@ const Questions: React.FC = () => {
         if (!deleteTargetId) return;
 
         try {
-            await axios.put(`http://localhost:7071/api/question/update/${deleteTargetId}`, {
+            await api.put(`/question/update/${deleteTargetId}`, {
                 isActive: false,
             });
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "../../api/axiosInstance";
 import toast from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
 import BackButton from "../../components/BackButton";
@@ -35,7 +35,7 @@ const InstituteAdminForm: React.FC = () => {
   useEffect(() => {
     if (isEditMode) {
       setLoading(true);
-      axios
+      api
         .get(`http://localhost:7071/api/users/${id}`)
         .then((res) => {
           setFormData({
@@ -80,10 +80,10 @@ const InstituteAdminForm: React.FC = () => {
     setSubmitting(true);
     try {
       if (isEditMode) {
-        await axios.put(`http://localhost:7071/api/users/${id}`, formData);
+        await api.put(`/users/${id}`, formData);
         toast.success("Center Admin updated successfully");
       } else {
-        await axios.post("http://localhost:7071/api/createUser", {
+        await api.post("/createUser", {
           ...formData,
           role: "center_admin",
           instituteId,

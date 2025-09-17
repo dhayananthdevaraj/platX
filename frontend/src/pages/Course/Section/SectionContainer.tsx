@@ -7,10 +7,9 @@ import AddTestModal from "./AddTestModal";
 import ConfigTestModal from "./ConfigTestModal";
 import TestVisibilityManager from "./TestVisibilityManager";
 import type { ModuleItem, Section, SectionTest, TestLite } from "../types/course";
-import axios from "axios";
+import { api } from "../../../api/axiosInstance";
 import { db } from "../../../db"; // ✅ Import IndexedDB instance
 
-const API_BASE = "http://localhost:7071/api";
 
 interface Props {
   section: Section;
@@ -236,7 +235,7 @@ const SectionContainer: React.FC<Props> = ({
       setConfigTestId(testId);
       setSaving(true);
 
-      const res = await axios.get(`${API_BASE}/test-configuration/${courseId}/${testId}`);
+      const res = await api.get(`/test-configuration/${courseId}/${testId}`);
 
       if (res.data) {
         const isProctored = !!res.data.isProctored;
@@ -309,9 +308,9 @@ const SectionContainer: React.FC<Props> = ({
       };
 
       if (configDocId) {
-        await axios.put(`${API_BASE}/test-configuration/update/${configDocId}`, body);
+        await api.put(`/test-configuration/update/${configDocId}`, body);
       } else {
-        await axios.post(`${API_BASE}/test-configuration/create`, body);
+        await api.post(`/test-configuration/create`, body);
       }
 
       toast.success("Configuration saved");

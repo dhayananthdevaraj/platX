@@ -1,10 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
-import axios from "axios";
+import { api } from "../../api/axiosInstance";
 import toast from "react-hot-toast";
 import Select from "react-select";
 import { useParams } from "react-router-dom";
 
-const API_BASE = "http://localhost:7071/api";
 
 type Option = { value: string; label: string };
 
@@ -94,8 +93,8 @@ const CourseEnrollment: React.FC = () => {
   useEffect(() => {
     if (!courseId) return;
 
-    axios
-      .get(`${API_BASE}/course/${courseId}`)
+    api
+      .get(`/course/${courseId}`)
       .then((res) => setCourse(res.data))
       .catch(() => toast.error("Failed to load course"));
 
@@ -106,7 +105,7 @@ const CourseEnrollment: React.FC = () => {
   const fetchEnrollment = async () => {
     if (!courseId) return;
     try {
-      const res = await axios.get(`${API_BASE}/enrollments/course/${courseId}`);
+      const res = await api.get(`/enrollments/course/${courseId}`);
       // The backend returns an array (per your function), but just in case handle both
       const data = res.data;
       const first: Enrollment | null = Array.isArray(data) ? (data[0] ?? null) : data ?? null;
@@ -122,7 +121,7 @@ const CourseEnrollment: React.FC = () => {
 
   const fetchInstitutes = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/institutes`);
+      const res = await api.get(`/institutes`);
       setInstitutes(res.data.institutes || []);
     } catch {
       toast.error("Failed to load institutes");
@@ -131,7 +130,7 @@ const CourseEnrollment: React.FC = () => {
 
   const fetchBatches = async (instituteId: string) => {
     try {
-      const res = await axios.get(`${API_BASE}/batch/institute/${instituteId}`);
+      const res = await api.get(`/batch/institute/${instituteId}`);
       setBatches(res.data.batches || []);
     } catch {
       toast.error("Failed to load batches");
@@ -175,13 +174,13 @@ const CourseEnrollment: React.FC = () => {
     setSaving(true);
     try {
       if (enrollment) {
-        await axios.put(`${API_BASE}/enrollment/update/${enrollment._id}`, {
+        await api.put(`/enrollment/update/${enrollment._id}`, {
           batchId: selectedBatchOption.value,
           courseId,
         });
         toast.success("Enrollment updated!");
       } else {
-        await axios.post(`${API_BASE}/enrollment/create`, {
+        await api.post(`/enrollment/create`, {
           batchId: selectedBatchOption.value,
           courseId,
         });

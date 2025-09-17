@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import { api } from "../../api/axiosInstance";
 import toast from 'react-hot-toast';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -61,10 +61,10 @@ const ManageExamForm: React.FC<Props> = ({ examToEdit, institutes, onClose }) =>
     try {
       setLoading(true);
       if (examToEdit) {
-        await axios.put(`/exam/${examToEdit._id}`, payload);
+        await api.put(`/exam/${examToEdit._id}`, payload);
         toast.success('Exam updated successfully');
       } else {
-        await axios.post('/exam/create', payload);
+        await api.post('/exam/create', payload);
         toast.success('Exam created successfully');
       }
       onClose();

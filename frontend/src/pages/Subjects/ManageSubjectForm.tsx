@@ -1,101 +1,5 @@
-// import React, { useEffect, useState } from 'react';
-// import axios from 'axios';
-// import toast from 'react-hot-toast';
-// import { useAuth } from '../../contexts/AuthContext';
-
-// interface Props {
-//   exam: any;
-//   subjectToEdit: any;
-//   onSuccess: (subject: any) => void;
-//   onClose: () => void;
-// }
-
-// const ManageSubjectForm: React.FC<Props> = ({ exam, subjectToEdit, onSuccess, onClose }) => {
-//   const { user } = useAuth();
-//   const [name, setName] = useState(subjectToEdit?.name || '');
-//   const [instituteId, setInstituteId] = useState(subjectToEdit?.instituteId?.[0] || exam?.instituteId?.[0] || '');
-//   const [institutes, setInstitutes] = useState<any[]>([]);
-
-//   useEffect(() => {
-//     const fetchInstitutes = async () => {
-//       try {
-//         const res = await axios.get('/institutes');
-//         setInstitutes(res.data.institutes || []);
-//       } catch {
-//         toast.error('Failed to load institutes');
-//       }
-//     };
-//     fetchInstitutes();
-//   }, []);
-
-//   const handleSubmit = async (e: React.FormEvent) => {
-//     e.preventDefault();
-//     if (!name.trim()) return toast.error('Name is required');
-
-//     const payload: any = {
-//       name: name.trim(),
-//       examId: exam._id,
-//       createdBy: user?.id,
-//     };
-
-//     // Add instituteId if exam has institute binding
-//     if (exam?.instituteId?.length > 0) {
-//       if (!instituteId) return toast.error('Institute is required');
-//       payload.instituteId = [instituteId];
-//     }
-
-//     try {
-//       const res = subjectToEdit
-//         ? await axios.put(`/subject/${subjectToEdit._id}`, payload)
-//         : await axios.post('/subject/create', payload);
-
-//       toast.success(`Subject ${subjectToEdit ? 'updated' : 'created'} successfully`);
-//       onSuccess(res.data.subject || res.data); // for both POST and PUT responses
-//     } catch (err: any) {
-//       toast.error(err.response?.data?.message || 'Operation failed');
-//     }
-//   };
-
-//   const getInstituteName = (id: string) =>
-//     institutes.find((inst) => inst._id === id)?.name || 'Unknown Institute';
-
-//   return (
-//     <form onSubmit={handleSubmit} className="space-y-4">
-//       <input
-//         type="text"
-//         className="input input-bordered w-full"
-//         placeholder="Subject Name"
-//         value={name}
-//         onChange={(e) => setName(e.target.value)}
-//       />
-
-//       {exam?.instituteId?.length > 0 && (
-//         <div>
-//           <label className="block text-sm text-gray-700 mb-1">Institute</label>
-//           <input
-//             type="text"
-//             className="input input-bordered w-full bg-gray-100 cursor-not-allowed"
-//             value={getInstituteName(instituteId)}
-//             disabled
-//           />
-//         </div>
-//       )}
-
-//       <div className="flex justify-end gap-3 pt-2">
-//         <button type="button" onClick={onClose} className="btn btn-outline">
-//           Cancel
-//         </button>
-//         <button type="submit" className="btn btn-primary">
-//           {subjectToEdit ? 'Update' : 'Create'}
-//         </button>
-//       </div>
-//     </form>
-//   );
-// };
-
-// export default ManageSubjectForm;
 import React, { useEffect, useState, useRef } from 'react';
-import axios from 'axios';
+import { api } from "../../api/axiosInstance";
 import toast from 'react-hot-toast';
 import { useAuth } from '../../contexts/AuthContext';
 import { ChevronDown } from 'lucide-react';
@@ -141,7 +45,7 @@ const ManageSubjectForm: React.FC<Props> = ({ exam, subjectToEdit, onSuccess, on
   useEffect(() => {
     const fetchInstitutes = async () => {
       try {
-        const res = await axios.get('/institutes');
+        const res = await api.get('/institutes');
         setInstitutes(res.data.institutes || []);
       } catch {
         toast.error('Failed to load institutes');
@@ -201,8 +105,8 @@ const ManageSubjectForm: React.FC<Props> = ({ exam, subjectToEdit, onSuccess, on
 
     try {
       const res = subjectToEdit
-        ? await axios.put(`/subject/${subjectToEdit._id}`, payload)
-        : await axios.post('/subject/create', payload);
+        ? await api.put(`/subject/${subjectToEdit._id}`, payload)
+        : await api.post('/subject/create', payload);
 
       toast.success(`Subject ${subjectToEdit ? 'updated' : 'created'} successfully`);
       onSuccess(res.data.subject || res.data);

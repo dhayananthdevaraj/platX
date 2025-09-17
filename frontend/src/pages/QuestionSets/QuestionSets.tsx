@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { api } from "../../api/axiosInstance";
 import { PlusCircle, Pencil, Trash2, Eye, X, Search, Power } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -76,7 +76,7 @@ const QuestionSets = () => {
 
   const fetchQuestionSets = async () => {
     try {
-      const res = await axios.get("http://localhost:7071/api/questionset/all");
+      const res = await api.get("/questionset/all");
       setQuestionSets(res.data.questionSets || []);
     } catch (error) {
       console.error("Failed to fetch question sets", error);
@@ -93,7 +93,7 @@ const QuestionSets = () => {
 
   const handleToggleActive = async (id: string, currentStatus: boolean) => {
     try {
-      await axios.put(`http://localhost:7071/api/questionset/update/${id}`, {
+      await api.put(`/questionset/update/${id}`, {
         isActive: !currentStatus,
       });
       toast.success(`Marked as ${!currentStatus ? "Active" : "Inactive"}`);
@@ -168,7 +168,7 @@ const QuestionSets = () => {
     const user = JSON.parse(localStorage.getItem("user") || "{}");
     const userId = user.id;
     try {
-      const res = await axios.post("http://localhost:7071/api/questionset/clone", {
+      const res = await api.post("/questionset/clone", {
         questionSetIds: selectedIds,
         createdBy: userId,
         name: cloneName,
@@ -189,7 +189,7 @@ const QuestionSets = () => {
   // Soft Delete One
   const handleSoftDelete = async (id: string) => {
     try {
-      await axios.put(`http://localhost:7071/api/questionset/update/${id}`, {
+      await api.put(`/questionset/update/${id}`, {
         isActive: false,
       });
       toast.success("Question set marked inactive");
@@ -204,7 +204,7 @@ const QuestionSets = () => {
     try {
       await Promise.all(
         selectedIds.map((id) =>
-          axios.put(`http://localhost:7071/api/questionset/update/${id}`, {
+          api.put(`/questionset/update/${id}`, {
             isActive: false,
           })
         )

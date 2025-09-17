@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import { api } from "../../api/axiosInstance";
 import toast from 'react-hot-toast';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Search, Users, Check } from 'lucide-react';
@@ -59,7 +59,7 @@ const ManageGroupForm: React.FC<Props> = ({ batchId }) => {
   // Fetch students for the batch
   const fetchStudents = async () => {
     try {
-      const res = await axios.get(`http://localhost:7071/api/students/batch/${finalBatchId}`);
+      const res = await api.get(`/students/batch/${finalBatchId}`);
       const activeStudents = res.data.students.filter((s: Student) => s.isActive);
       setStudents(activeStudents);
       setFilteredStudents(activeStudents);
@@ -75,7 +75,7 @@ const ManageGroupForm: React.FC<Props> = ({ batchId }) => {
     
     setLoading(true);
     try {
-      const res = await axios.get(`http://localhost:7071/api/group/${id}`);
+      const res = await api.get(`/group/${id}`);
       console.log("res", res);
       
       const groupData = res.data;
@@ -198,13 +198,13 @@ const ManageGroupForm: React.FC<Props> = ({ batchId }) => {
     setSubmitting(true);
     try {
       if (isEditMode) {
-        await axios.put(`http://localhost:7071/api/group/${id}`, {
+        await api.put(`/group/${id}`, {
           ...formData,
           lastUpdatedBy: userId
         });
         toast.success('Group updated successfully');
       } else {
-        await axios.post('http://localhost:7071/api/group/create', {
+        await api.post('/group/create', {
           ...formData,
           batchId: finalBatchId,
           createdBy: userId
