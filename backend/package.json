@@ -10,6 +10,7 @@
   "dependencies": {
     "@azure/communication-email": "^1.0.0",
     "@azure/functions": "^4.7.3",
+    "@azure/storage-blob": "^12.28.0",
     "bcryptjs": "^3.0.2",
     "busboy": "^1.6.0",
     "dotenv": "^16.5.0",

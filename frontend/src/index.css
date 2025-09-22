@@ -96,3 +96,18 @@
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+.question-html img {
+  max-width: 200px;
+  /* limit width */
+  height: auto;
+  /* keep aspect ratio */
+  display: inline-block;
+  /* or block depending on layout */
+  vertical-align: middle;
+  /* align with text if inline */
+  margin: 0 4px;
+  /* optional spacing */
+  border-radius: 4px;
+  /* optional rounded corners */
+}

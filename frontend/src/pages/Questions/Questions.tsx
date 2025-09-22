@@ -148,15 +148,21 @@ const Questions: React.FC = () => {
         try {
             switch (action) {
                 case "delete":
-                    for (const id of selectedIds) {
-                        await api.put(`/question/update/${id}`, {
-                            isActive: false,
+                    try {
+                        await api.delete(`/questions/delete`, {
+                            data: { ids: selectedIds }
                         });
+
+                        // remove from local state immediately
+                        setQuestions(prev => prev.filter(q => !selectedIds.includes(q._id)));
+
+                        toast.success("Deleted successfully");
+                        setSelectedIds([]);
+                        setSelectAll(false);
+                    } catch (err) {
+                        console.error(err);
+                        toast.error("Failed to delete questions");
                     }
-                    toast.success("Deleted successfully");
-                    setSelectedIds([]);
-                    setSelectAll(false);
-                    fetchQuestions();
                     break;
 
                 case "move":
@@ -250,11 +256,12 @@ const Questions: React.FC = () => {
         if (!deleteTargetId) return;
 
         try {
-            await api.put(`/question/update/${deleteTargetId}`, {
-                isActive: false,
+            await api.delete(`/questions/delete`, {
+                data: { ids: deleteTargetId }
             });
 
-            setQuestions((prev) => prev.filter((q) => q._id !== deleteTargetId));
+            // remove from local state immediately
+            setQuestions(prev => prev.filter(q => q._id !== deleteTargetId));
             toast.success("Question deleted successfully");
         } catch (err) {
             console.error("Delete failed", err);
@@ -479,11 +486,17 @@ const Questions: React.FC = () => {
                                         }}
                                         className="w-4 h-4 mt-1 flex-shrink-0"
                                     />
-                                    <h2 className="text-base sm:text-lg font-semibold line-clamp-3 sm:line-clamp-2 break-words">
-                                        <span className="text-gray-600">
+
+                                    <h2
+                                        className="text-base sm:text-lg font-semibold break-words question-text"
+                                    >
+                                        <span className="text-gray-600 mr-1">
                                             Q{(currentPage - 1) * rowsPerPage + (index + 1)}.
-                                        </span>{" "}
-                                        {q.text}
+                                        </span>
+                                        <span
+                                        className="question-html"
+                                            dangerouslySetInnerHTML={{ __html: q.text }}
+                                        />
                                     </h2>
                                 </div>
                                 <div className="flex gap-1 sm:gap-2 text-gray-500 flex-shrink-0">
@@ -554,9 +567,9 @@ const Questions: React.FC = () => {
                                                 <span className="font-medium flex-shrink-0 text-sm">
                                                     {idx + 1}.
                                                 </span>
-                                                <span className="text-gray-700 text-sm break-words">
+                                                <div className="text-gray-700 text-sm w-full whitespace-pre-wrap">
                                                     {opt}
-                                                </span>
+                                                </div>
                                             </div>
                                         ))}
                                     </div>

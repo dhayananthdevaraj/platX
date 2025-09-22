@@ -50,8 +50,8 @@ const AddQuestion: React.FC = () => {
             <div className="w-full">
                 {mode === "form" ? (
                     <ManageQuestionForm />
-                ) : instituteId && questionSetId ? (
-                    <UploadQuestionExcel instituteId={instituteId} questionSetId={questionSetId} />
+                ) :  questionSetId ? (
+                    <UploadQuestionExcel questionSetId={questionSetId} />
                 ) : (
                     <div className="bg-white rounded-xl border shadow-md p-6 text-center">
                         <p className="text-red-600 text-sm sm:text-base">Missing institute ID or question set ID.</p>

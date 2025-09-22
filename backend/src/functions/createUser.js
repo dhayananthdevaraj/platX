@@ -8,8 +8,8 @@ app.http('createUser', {
   authLevel: 'anonymous',
   handler: async (request, context) => {
     try {
-     const decodedUser = verifyToken(request);
-      context.log('Authenticated user:', decodedUser);
+    //  const decodedUser = verifyToken(request);
+    //   context.log('Authenticated user:', decodedUser);
 
       await connectDB();
 

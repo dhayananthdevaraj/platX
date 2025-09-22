@@ -5,12 +5,10 @@ import toast from "react-hot-toast";
 import FileUpload from "../../components/FileUpload"; // ✅ import your reusable FileUpload
 
 interface UploadQuestionExcelProps {
-    instituteId: string;
     questionSetId: string; // 👈 required
 }
 
 const UploadQuestionExcel: React.FC<UploadQuestionExcelProps> = ({
-    instituteId,
     questionSetId,
 }) => {
     const [file, setFile] = useState<File | null>(null);
