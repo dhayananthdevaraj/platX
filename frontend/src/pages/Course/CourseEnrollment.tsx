@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { api } from "../../api/axiosInstance";
+import axios from "axios";
 import toast from "react-hot-toast";
 import Select from "react-select";
 import { useParams } from "react-router-dom";
 
+const API_BASE = "http://localhost:7071/api";
 
 type Option = { value: string; label: string };
 
@@ -93,8 +94,8 @@ const CourseEnrollment: React.FC = () => {
   useEffect(() => {
     if (!courseId) return;
 
-    api
-      .get(`/course/${courseId}`)
+    axios
+      .get(`${API_BASE}/course/${courseId}`)
       .then((res) => setCourse(res.data))
       .catch(() => toast.error("Failed to load course"));
 
@@ -105,15 +106,11 @@ const CourseEnrollment: React.FC = () => {
   const fetchEnrollment = async () => {
     if (!courseId) return;
     try {
-      const res = await api.get(`/enrollments/course/${courseId}`);
+      const res = await axios.get(`${API_BASE}/enrollments/course/${courseId}`);
       // The backend returns an array (per your function), but just in case handle both
       const data = res.data;
       const first: Enrollment | null = Array.isArray(data) ? (data[0] ?? null) : data ?? null;
       setEnrollment(first);
-      // ✅ Store batch ID in localStorage if available
-      if (first?.batchId?._id) {
-        localStorage.setItem("selectedBatchId", first.batchId._id);
-      }
     } catch {
       setEnrollment(null); // none yet
     }
@@ -121,7 +118,7 @@ const CourseEnrollment: React.FC = () => {
 
   const fetchInstitutes = async () => {
     try {
-      const res = await api.get(`/institutes`);
+      const res = await axios.get(`${API_BASE}/institutes`);
       setInstitutes(res.data.institutes || []);
     } catch {
       toast.error("Failed to load institutes");
@@ -130,7 +127,7 @@ const CourseEnrollment: React.FC = () => {
 
   const fetchBatches = async (instituteId: string) => {
     try {
-      const res = await api.get(`/batch/institute/${instituteId}`);
+      const res = await axios.get(`${API_BASE}/batch/institute/${instituteId}`);
       setBatches(res.data.batches || []);
     } catch {
       toast.error("Failed to load batches");
@@ -174,13 +171,13 @@ const CourseEnrollment: React.FC = () => {
     setSaving(true);
     try {
       if (enrollment) {
-        await api.put(`/enrollment/update/${enrollment._id}`, {
+        await axios.put(`${API_BASE}/enrollment/update/${enrollment._id}`, {
           batchId: selectedBatchOption.value,
           courseId,
         });
         toast.success("Enrollment updated!");
       } else {
-        await api.post(`/enrollment/create`, {
+        await axios.post(`${API_BASE}/enrollment/create`, {
           batchId: selectedBatchOption.value,
           courseId,
         });

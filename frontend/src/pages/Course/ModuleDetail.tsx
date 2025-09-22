@@ -1,12 +1,12 @@
+
+
 import React, { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import InlineEdit from "./InlineEdit";
-import { api } from "../../api/axiosInstance";
 import SectionContainer from "./Section/SectionContainer";
 import type { ModuleItem, Section, TestLite } from "./types/course";
-import { db } from "../../db"; // ✅ Import Dexie DB
-import type { Module } from "../../db";
+import axios from "axios";
 
 interface Props {
   module: ModuleItem;
@@ -14,6 +14,7 @@ interface Props {
   onChanged: (nextModuleId?: string | null) => void; // ✅ Enhanced to handle module selection
 }
 
+const API_BASE = "http://localhost:7071/api";
 
 const ModuleDetail: React.FC<Props> = ({ module, userId, onChanged }) => {
   const [moduleData, setModuleData] = useState<ModuleItem>(module);
@@ -36,7 +37,7 @@ const ModuleDetail: React.FC<Props> = ({ module, userId, onChanged }) => {
   const fetchTests = async () => {
     try {
       setLoadingTests(true);
-      const res = await api.get(`/test/all`);
+      const res = await axios.get(`${API_BASE}/test/all`);
       setAllTests(res.data?.tests || []);
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Failed to load tests");
@@ -49,38 +50,18 @@ const ModuleDetail: React.FC<Props> = ({ module, userId, onChanged }) => {
     fetchTests();
   }, [moduleData._id]);
 
-  /** Save updated module to IndexedDB instead of localStorage */
-  const updateModuleInStorage = async (updatedModule: ModuleItem) => {
-    try {
-      // Commented out localStorage code
-      /*
-      const cached = localStorage.getItem(`course_${updatedModule.courseId}`);
-      const modules: ModuleItem[] = cached ? JSON.parse(cached) : [];
+  /** Save updated module to localStorage */
+  const updateModuleInStorage = (updatedModule: ModuleItem) => {
+    const cached = localStorage.getItem(`course_${updatedModule.courseId}`);
+    const modules: ModuleItem[] = cached ? JSON.parse(cached) : [];
 
-      const updatedModules = modules.map((m) =>
-        m._id === updatedModule._id ? updatedModule : m
-      );
+    const updatedModules = modules.map((m) =>
+      m._id === updatedModule._id ? updatedModule : m
+    );
 
-      localStorage.setItem(`course_${updatedModule.courseId}`, JSON.stringify(updatedModules));
-      */
-
-      // ✅ IndexedDB update
-      const existing = await db.modules.get(updatedModule._id);
-      if (existing) {
-        await db.modules.put({
-          ...existing,
-          ...updatedModule,
-          lastUpdatedBy: userId,
-          updatedAt: new Date().toISOString(),
-        } as Module);
-      }
-
-      setModuleData(updatedModule);
-      onChanged(); // Regular update without module selection
-    } catch (err) {
-      console.error("Error updating module in DB:", err);
-      toast.error("Failed to update module in DB");
-    }
+    localStorage.setItem(`course_${updatedModule.courseId}`, JSON.stringify(updatedModules));
+    setModuleData(updatedModule);
+    onChanged(); // Regular update without module selection
   };
 
   /** Handle Section Drag and Drop */
@@ -90,18 +71,22 @@ const ModuleDetail: React.FC<Props> = ({ module, userId, onChanged }) => {
     const { source, destination } = result;
     if (source.index === destination.index) return;
 
+    // Get active sections and sort by current order
     const activeSections = (moduleData.sections || []).filter((s) => !s.isDeleted);
     const reordered = [...activeSections].sort((a, b) => a.order - b.order);
 
+    // Perform the reorder
     const [moved] = reordered.splice(source.index, 1);
     reordered.splice(destination.index, 0, moved);
 
+    // Update order values and mark as updated
     const updatedActiveSections = reordered.map((s, idx) => ({
       ...s,
       order: idx + 1,
-      isUpdated: !s.isNew,
+      isUpdated: !s.isNew, // mark updated if it came from backend
     }));
 
+    // Merge with deleted sections (keep them unchanged)
     const deletedSections = (moduleData.sections || []).filter((s) => s.isDeleted);
     const allUpdatedSections = [...updatedActiveSections, ...deletedSections];
 
@@ -169,92 +154,100 @@ const ModuleDetail: React.FC<Props> = ({ module, userId, onChanged }) => {
     toast.success("Description updated locally");
   };
 
-  /** Delete module with auto-selection logic */
-  const handleDeleteModule = async () => {
+  /** ✅ Delete module with auto-selection logic */
+  const handleDeleteModule = () => {
     if (!confirm("Are you sure you want to delete this module?")) return;
 
-    // Commented out localStorage code
-    /*
     const cached = localStorage.getItem(`course_${moduleData.courseId}`);
     const modules: ModuleItem[] = cached ? JSON.parse(cached) : [];
-    */
 
-    try {
-      const modules: ModuleItem[] = await db.modules.where("courseId").equals(moduleData.courseId).toArray();
+    let updatedModules: ModuleItem[] = [];
+    let nextModuleId: string | null = null;
 
-      let updatedModules: ModuleItem[] = [];
-      let nextModuleId: string | null = null;
-
-      const currentOrder = moduleData.order;
-      const activeModules = modules.filter((m) => !m.isDeleted && m._id !== moduleData._id);
-
-      if (activeModules.length > 0) {
-        const sortedActiveModules = activeModules.sort((a, b) => a.order - b.order);
-        const nextModule = sortedActiveModules.find(m => m.order > currentOrder);
-        nextModuleId = nextModule ? nextModule._id : sortedActiveModules[sortedActiveModules.length - 1]._id;
-      }
-
-      if (moduleData.isNew) {
-        updatedModules = modules.filter((m) => m._id !== moduleData._id);
-        toast.success("Local module deleted permanently");
+    // ✅ Find the next module to select BEFORE deletion
+    const currentOrder = moduleData.order;
+    const activeModules = modules.filter((m) => !m.isDeleted && m._id !== moduleData._id);
+    
+    if (activeModules.length > 0) {
+      // Sort active modules by order
+      const sortedActiveModules = activeModules.sort((a, b) => a.order - b.order);
+      
+      // Try to find the next module with higher order
+      const nextModule = sortedActiveModules.find(m => m.order > currentOrder);
+      
+      if (nextModule) {
+        nextModuleId = nextModule._id;
       } else {
-        updatedModules = modules.map((m) =>
-          m._id === moduleData._id ? { ...m, isDeleted: true } : m
-        );
-        toast.success("Module marked as deleted locally");
+        // If no next module, select the previous one (last in the list)
+        nextModuleId = sortedActiveModules[sortedActiveModules.length - 1]._id;
       }
-
-      const deletedOrder = moduleData.order;
-      updatedModules = updatedModules.map((m) => {
-        if (!m.isDeleted && m.order > deletedOrder) {
-          return {
-            ...m,
-            order: m.order - 1,
-            isUpdated: true,
-          };
-        }
-        return m;
-      });
-
-      // ✅ Save updated modules in IndexedDB
-      await db.modules.bulkPut(updatedModules.map(m => ({
-        ...m,
-        updatedAt: new Date().toISOString(),
-        lastUpdatedBy: userId
-      }) as Module));
-
-      onChanged(nextModuleId);
-
-    } catch (err) {
-      console.error("Error deleting module in DB:", err);
-      toast.error("Failed to delete module in DB");
     }
+    // If no active modules remain, nextModuleId stays null
+
+    // Perform deletion
+    if (moduleData.isLocal) {
+      // ✅ Remove local-only module completely
+      updatedModules = modules.filter((m) => m._id !== moduleData._id);
+      toast.success("Local module deleted permanently");
+    } else {
+      // ✅ Soft delete backend module
+      updatedModules = modules.map((m) =>
+        m._id === moduleData._id ? { ...m, isDeleted: true } : m
+      );
+      toast.success("Module marked as deleted locally");
+    }
+
+    // ✅ Reorder only modules AFTER the deleted one
+    const deletedOrder = moduleData.order;
+    updatedModules = updatedModules.map((m) => {
+      if (!m.isDeleted && m.order > deletedOrder) {
+        return {
+          ...m,
+          order: m.order - 1,
+          isUpdated: true, // mark as updated since order shifted
+        };
+      }
+      return m;
+    });
+
+    // Save updated data
+    localStorage.setItem(
+      `course_${moduleData.courseId}`,
+      JSON.stringify(updatedModules)
+    );
+
+    // ✅ Notify parent with next module selection
+    onChanged(nextModuleId);
   };
 
   const handleSectionUpdate = (updatedSection: Section & { remove?: boolean }) => {
     let updatedSections: Section[] = [];
 
     if (updatedSection.remove) {
+      // ✅ Remove section completely
       updatedSections = (moduleData.sections || []).filter(
         (s) => s._id !== updatedSection._id
       );
 
+      // ✅ Reorder sections after the deleted one
       const deletedOrder = updatedSection.order;
       updatedSections = updatedSections.map((s) => {
         if (!s.isDeleted && s.order > deletedOrder) {
           return {
             ...s,
             order: s.order - 1,
-            isUpdated: true,
+            isUpdated: true, // mark as updated since order shifted
           };
         }
         return s;
       });
     } else {
+      // ✅ Update or mark as deleted
       updatedSections = (moduleData.sections || []).map((s) =>
         s._id === updatedSection._id ? updatedSection : s
       );
 
+      // ✅ If this was a soft delete, also reorder
       if (updatedSection.isDeleted) {
         const deletedOrder = updatedSection.order;
         updatedSections = updatedSections.map((s) => {
@@ -277,6 +270,7 @@ const ModuleDetail: React.FC<Props> = ({ module, userId, onChanged }) => {
     updateModuleInStorage(updatedModule);
   };
 
+  // Get active sections for display
   const activeSections = sortedSections.filter((s) => !s.isDeleted);
 
   return (
@@ -317,8 +311,9 @@ const ModuleDetail: React.FC<Props> = ({ module, userId, onChanged }) => {
                 <div
                   {...provided.droppableProps}
                   ref={provided.innerRef}
-                  className={`space-y-3 ${snapshot.isDraggingOver ? "bg-blue-50 rounded-lg p-2" : ""
-                    } transition-colors`}
+                  className={`space-y-3 ${
+                    snapshot.isDraggingOver ? "bg-blue-50 rounded-lg p-2" : ""
+                  } transition-colors`}
                 >
                   {activeSections.map((section, index) => (
                     <Draggable
@@ -331,10 +326,11 @@ const ModuleDetail: React.FC<Props> = ({ module, userId, onChanged }) => {
                         <div
                           ref={provided.innerRef}
                           {...provided.draggableProps}
-                          className={`${snapshot.isDragging
+                          className={`${
+                            snapshot.isDragging
                               ? "shadow-2xl bg-white z-50 rotate-1 scale-105"
                               : ""
-                            } transition-all`}
+                          } transition-all`}
                         >
                           <div className="flex">
                             {/* Drag Handle */}
@@ -360,8 +356,9 @@ const ModuleDetail: React.FC<Props> = ({ module, userId, onChanged }) => {
 
                             {/* Section Content */}
                             <div
-                              className={`flex-1 ${snapshot.isDragging ? "pointer-events-none" : ""
-                                }`}
+                              className={`flex-1 ${
+                                snapshot.isDragging ? "pointer-events-none" : ""
+                              }`}
                             >
                               <SectionContainer
                                 key={section._id}

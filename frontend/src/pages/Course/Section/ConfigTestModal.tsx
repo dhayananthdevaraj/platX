@@ -1,4 +1,5 @@
 import React from "react";
+import toast from "react-hot-toast";
 
 type ConfigState = {
   startTime: string;
@@ -20,6 +21,7 @@ interface Props {
   onSave: () => Promise<void>;
   onCancel: () => void;
   saving: boolean;
+  testKey?: string;
 }
 
 const ConfigTestModal: React.FC<Props> = ({
@@ -28,18 +30,36 @@ const ConfigTestModal: React.FC<Props> = ({
   onSave,
   onCancel,
   saving,
+  testKey,
 }) => {
   const setConfig = onConfigChange;
+
+  const handleSave = async () => {
+    // basic validation: start/end and duration
+    if (!config.startTime || !config.endTime) {
+      toast.error("Please fill start and end date/time");
+      return;
+    }
+    if (!config.durationInMinutes || config.durationInMinutes <= 0) {
+      toast.error("Duration must be at least 1 minute");
+      return;
+    }
+    await onSave();
+  };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50 p-4">
       <div className="bg-white rounded-xl p-6 w-full max-w-lg shadow-2xl overflow-y-auto max-h-[90vh]">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold">Configure Test</h3>
-          <button
-            onClick={onCancel}
-            className="text-gray-400 hover:text-gray-700"
-          >
+          <div>
+            <h3 className="text-xl font-semibold">Configure Test</h3>
+            {testKey && (
+              <div className="text-xs text-gray-500 mt-1">
+                Editing staged test: <span className="font-mono">{testKey}</span>
+              </div>
+            )}
+          </div>
+          <button onClick={onCancel} className="text-gray-400 hover:text-gray-700">
             ✕
           </button>
         </div>
@@ -96,14 +116,13 @@ const ConfigTestModal: React.FC<Props> = ({
               <input
                 type="checkbox"
                 checked={config.isRetakeAllowed}
-                onChange={(e) => {
-                  const checked = e.target.checked;
+                onChange={(e) =>
                   setConfig((c) => ({
                     ...c,
-                    isRetakeAllowed: checked,
-                    maxAttempts: checked ? Math.max(2, c.maxAttempts) : 1,
-                  }));
-                }}
+                    isRetakeAllowed: e.target.checked,
+                    maxAttempts: e.target.checked ? Math.max(2, c.maxAttempts) : 1,
+                  }))
+                }
                 className="rounded border-gray-400"
               />
               Allow Retakes
@@ -116,7 +135,7 @@ const ConfigTestModal: React.FC<Props> = ({
           </div>
         </div>
 
-        {/* Mode (Mutually Exclusive) */}
+        {/* Mode */}
         <div className="mb-4">
           <h4 className="text-sm font-medium text-gray-700 mb-2">Mode</h4>
           <div className="flex gap-6">
@@ -159,7 +178,7 @@ const ConfigTestModal: React.FC<Props> = ({
                   setConfig({ ...config, malpracticeLimit: Math.max(0, +e.target.value || 0) })
                 }
                 className="border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Number of allowed violations (tab switch, etc.)"
+                placeholder="Number of allowed violations"
               />
             </div>
           </div>
@@ -175,7 +194,9 @@ const ConfigTestModal: React.FC<Props> = ({
                 type="number"
                 min={0}
                 value={config.correctMark}
-                onChange={(e) => setConfig({ ...config, correctMark: Math.max(0, +e.target.value || 1) })}
+                onChange={(e) =>
+                  setConfig({ ...config, correctMark: Math.max(0, +e.target.value || 1) })
+                }
                 className="border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -185,7 +206,9 @@ const ConfigTestModal: React.FC<Props> = ({
                 type="number"
                 min={0}
                 value={config.negativeMark}
-                onChange={(e) => setConfig({ ...config, negativeMark: Math.max(0, +e.target.value || 0) })}
+                onChange={(e) =>
+                  setConfig({ ...config, negativeMark: Math.max(0, +e.target.value || 0) })
+                }
                 className="border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -210,14 +233,11 @@ const ConfigTestModal: React.FC<Props> = ({
 
         {/* Footer */}
         <div className="flex justify-end gap-3 mt-6">
-          <button
-            onClick={onCancel}
-            className="px-4 py-2 rounded border hover:bg-gray-50"
-          >
+          <button onClick={onCancel} className="px-4 py-2 rounded border hover:bg-gray-50">
             Cancel
           </button>
           <button
-            onClick={onSave}
+            onClick={handleSave}
             disabled={saving}
             className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
           >

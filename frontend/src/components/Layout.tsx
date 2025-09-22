@@ -22,7 +22,7 @@ import { IoPersonSharp } from "react-icons/io5";
 const RailTooltip: React.FC<{ label: string }> = ({ label }) => (
   <div
     className="
-      absolute left-full top-1/2 -translate-y-1/2 ml-3
+      absolute left-full top-1/2 -translate-y-1/2 ml-3 z-50
       whitespace-nowrap rounded-lg bg-gray-900 px-3 py-1.5 text-xs font-medium text-white shadow-lg
       opacity-0 pointer-events-none group-hover:opacity-100
       transition-opacity duration-150
@@ -115,7 +115,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       </div>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:fixed lg:inset-y-0 lg:flex">
+      <aside className="hidden lg:fixed lg:inset-y-0 lg:flex lg:z-40">
         <div className="flex h-full w-16 flex-col items-center bg-blue-700 text-white shadow-xl">
           {/* 🔵 Rail top (logo) */}
           <div className="flex h-10 w-10 items-center justify-center mt-3 mb-3 rounded-lg bg-blue-600 shadow-md">
@@ -132,11 +132,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     to={item.href}
                     aria-label={item.name}
                     className={`group relative flex h-10 w-10 mx-auto items-center justify-center rounded-lg
-                      transition-all hover:bg-blue-600
+                      transition-all duration-200 hover:bg-blue-600 hover:scale-105
                       ${isActive ? "bg-white text-blue-700 shadow-md scale-105" : ""}`}
                   >
                     <Icon
-                      className={`h-5 w-5 transition
+                      className={`h-5 w-5 transition-colors duration-200 relative z-10
                         ${isActive ? "text-blue-700" : "text-white group-hover:text-gray-100"}`}
                     />
                     <RailTooltip label={item.name}/>
@@ -154,7 +154,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Main */}
       <div className="lg:pl-16">
         {/* Top bar */}
-        <div className="sticky top-0 z-40 bg-white border-b-4 border-blue-700 shadow-sm">
+        <div className="sticky top-0 z-30 bg-white border-b-4 border-blue-700 shadow-sm">
           <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-3">
               <button

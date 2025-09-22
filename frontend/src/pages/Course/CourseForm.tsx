@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { api } from "../../api/axiosInstance";
+import axios from "axios";
 import toast from "react-hot-toast";
 
 interface Course {
@@ -10,6 +10,7 @@ interface Course {
   isActive?: boolean;
 }
 
+const API_BASE = "http://localhost:7071/api";
 
 const CourseForm: React.FC = () => {
   const { id } = useParams();
@@ -23,8 +24,8 @@ const CourseForm: React.FC = () => {
 
   useEffect(() => {
     if (id) {
-      api
-        .get(`/course/${id}`)
+      axios
+        .get(`${API_BASE}/course/${id}`)
         .then((res) => setFormData(res.data))
         .catch(() => toast.error("Failed to fetch course"));
     }
@@ -43,10 +44,10 @@ const CourseForm: React.FC = () => {
     setLoading(true);
     try {
       if (id) {
-        await api.put(`/course/update/${id}`, formData);
+        await axios.put(`${API_BASE}/course/update/${id}`, formData);
         toast.success("Course updated");
       } else {
-        await api.post(`/course/create`, formData);
+        await axios.post(`${API_BASE}/course/create`, formData);
         toast.success("Course created");
       }
       navigate("/courses");
